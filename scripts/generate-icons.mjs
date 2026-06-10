@@ -93,6 +93,35 @@ async function pngFromSvg(svg, w, h) {
   return sharp(Buffer.from(svg)).resize(w, h).png().toBuffer();
 }
 
+// Build a multi-size .ico that embeds PNGs (valid PNG-in-ICO, supported by all
+// modern browsers/OSes) — sharp can't emit .ico directly.
+function buildIco(images) {
+  const count = images.length;
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(count, 4);
+
+  const entries = [];
+  const datas = [];
+  let offset = 6 + count * 16;
+  for (const { size, buf } of images) {
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(size >= 256 ? 0 : size, 0); // width
+    entry.writeUInt8(size >= 256 ? 0 : size, 1); // height
+    entry.writeUInt8(0, 2); // palette
+    entry.writeUInt8(0, 3); // reserved
+    entry.writeUInt16LE(1, 4); // color planes
+    entry.writeUInt16LE(32, 6); // bits per pixel
+    entry.writeUInt32LE(buf.length, 8); // size of image data
+    entry.writeUInt32LE(offset, 12); // offset of image data
+    offset += buf.length;
+    entries.push(entry);
+    datas.push(buf);
+  }
+  return Buffer.concat([header, ...entries, ...datas]);
+}
+
 async function main() {
   await mkdir(publicDir, { recursive: true });
 
@@ -114,6 +143,16 @@ async function main() {
 
   await writeFile(join(publicDir, "icon.svg"), Buffer.from(badgeSvg));
   console.log("wrote public/icon.svg");
+
+  // favicon.ico (16/32/48) from the VideoNest badge — overwrites the stale
+  // create-next-app default. Next serves app/favicon.ico at /favicon.ico.
+  const icoSizes = [16, 32, 48];
+  const icoImages = await Promise.all(
+    icoSizes.map(async (size) => ({ size, buf: await pngFromSvg(badgeSvg, size, size) })),
+  );
+  const ico = buildIco(icoImages);
+  await writeFile(join(root, "app", "favicon.ico"), ico);
+  console.log("wrote app/favicon.ico (16/32/48)");
 
   // iOS splash screens.
   for (const t of SPLASH_TARGETS) {
