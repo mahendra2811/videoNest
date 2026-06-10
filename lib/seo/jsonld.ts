@@ -1,5 +1,24 @@
 import { absoluteUrl, siteConfig } from "@/lib/config/site";
+import type { BlogPost } from "@/lib/content/blog";
 import type { FaqItem } from "@/lib/content/faq";
+
+export function blogPostingJsonLd(post: BlogPost) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    author: { "@type": "Organization", name: post.author },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      logo: { "@type": "ImageObject", url: absoluteUrl("/icon-512.png") },
+    },
+    mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+  };
+}
 
 export function organizationJsonLd() {
   return {
