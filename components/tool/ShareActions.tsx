@@ -6,17 +6,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { siteConfig } from "@/lib/config/site";
+import { getPlatformContent } from "@/lib/content/platforms";
 import { type DeviceShareMode, downloadBlob, getShareMode, shareFile } from "@/lib/share/share";
 
-const HINTS: Record<DeviceShareMode, string> = {
-  "mobile-share":
-    "Tap Share to WhatsApp, then choose My Status. Quality is the same as downloading — we already optimized it.",
-  "mobile-download": "Tap Download, then post it from the WhatsApp app.",
-  desktop:
-    "Download, then post from your phone's WhatsApp app (not WhatsApp Web — it compresses harder).",
-};
-
-export function ShareActions({ blob, filename }: { blob: Blob; filename: string }) {
+export function ShareActions({
+  blob,
+  filename,
+  profileId,
+}: {
+  blob: Blob;
+  filename: string;
+  profileId: string;
+}) {
+  const content = getPlatformContent(profileId);
   const [mode, setMode] = React.useState<DeviceShareMode>("desktop");
   const fileRef = React.useRef<File | null>(null);
 
@@ -28,8 +30,8 @@ export function ShareActions({ blob, filename }: { blob: Blob; filename: string 
 
   const handleDownload = () => {
     downloadBlob(blob, filename);
-    track("downloaded");
-    toast.success("Saved! Now post it from the WhatsApp app.");
+    track("downloaded", { platform: profileId });
+    toast.success("Saved! Now post it from the app.");
   };
 
   const handleShare = async () => {
@@ -38,15 +40,21 @@ export function ShareActions({ blob, filename }: { blob: Blob; filename: string 
     try {
       const shared = await shareFile(file, {
         title: `${siteConfig.name} — optimized video`,
-        text: "Optimized for WhatsApp Status",
+        text: content.shareText,
       });
-      if (shared) track("shared");
+      if (shared) track("shared", { platform: profileId });
     } catch {
       toast.error("Couldn't open the share sheet. Try Download instead.");
     }
   };
 
   const canShare = mode === "mobile-share";
+  const hint =
+    mode === "mobile-share"
+      ? content.share.mobileShare
+      : mode === "mobile-download"
+        ? content.share.mobileDownload
+        : content.share.desktop;
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,7 +62,7 @@ export function ShareActions({ blob, filename }: { blob: Blob; filename: string 
         {canShare && (
           <Button onClick={handleShare} className="flex-1" size="lg">
             <Share2 className="h-5 w-5" />
-            Share to WhatsApp
+            {content.shareButtonLabel}
           </Button>
         )}
         <Button
@@ -67,7 +75,7 @@ export function ShareActions({ blob, filename }: { blob: Blob; filename: string 
           Download
         </Button>
       </div>
-      <p className="text-center text-sm text-muted">{HINTS[mode]}</p>
+      <p className="text-center text-sm text-muted">{hint}</p>
     </div>
   );
 }

@@ -96,10 +96,17 @@ export function buildPlan(meta: VideoMeta, profile: PlatformProfile): EncodePlan
     const ceiling = 10_000_000; // ~10 Mbps ≈ visually lossless at 1080p
     videoBitrate = Math.min(videoBudget, ceiling);
   } else {
-    // Overprovision (deferred platforms): scale a high target by pixel rate.
+    // Overprovision: aim for a high, quality-first target scaled by pixel rate,
+    // then clamp to a sane range. If the platform states a size cap, never
+    // exceed the budget it implies for this (possibly trimmed) duration.
     const perPixel = 0.1;
-    const raw = targetWidth * targetHeight * fps * perPixel;
-    videoBitrate = Math.min(Math.max(raw, 4_000_000), 20_000_000);
+    let raw = targetWidth * targetHeight * fps * perPixel;
+    raw = Math.min(Math.max(raw, 4_000_000), 20_000_000);
+    if (sizeCapBytes > 0) {
+      const budget = (sizeCapBytes * 8 * 0.92) / effectiveDurationSec - audioBitrate;
+      if (budget > 800_000) raw = Math.min(raw, budget);
+    }
+    videoBitrate = raw;
   }
   videoBitrate = Math.round(videoBitrate);
 

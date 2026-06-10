@@ -83,7 +83,7 @@ export async function runOptimize(
         height: res.height,
         durationSec: res.durationSec,
         sizeBytes: res.blob.size,
-        filename: "videonest-whatsapp-status.mp4",
+        filename: `videonest-${profile.id}.mp4`,
       },
     };
   };

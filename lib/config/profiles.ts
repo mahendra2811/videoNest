@@ -2,17 +2,20 @@ import type { PlatformProfile } from "@/lib/engine/types";
 
 /**
  * The single source of truth for platform output profiles. Both the home grid
- * and the encode engine read from this registry, so adding a platform later is
- * additive — flip `status: 'soon'` to `'live'` and wire a share adapter.
+ * and the encode engine read from this registry, so each platform is fully
+ * data-driven — its tool route (`slug`), encode parameters, and share copy all
+ * live here.
  *
- * WhatsApp Status is the only live profile in v1 (see spec §3). The encode
- * profile is encoded here as data.
+ * WhatsApp Status uses the constrained (hard size-cap) strategy; the others use
+ * `overprovision` (high quality, capped by the platform's own size limit when
+ * one is stated). All processing stays 100% on-device.
  */
 export const PLATFORM_PROFILES: PlatformProfile[] = [
   {
     id: "whatsapp-status",
     label: "WhatsApp Status",
     status: "live",
+    slug: "whatsapp-status-video",
     icon: "MessageCircle",
     aspect: "9:16",
     maxWidth: 1080,
@@ -26,14 +29,11 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
       "Tap Share to WhatsApp, then choose My Status. Quality is the same as downloading — we already optimized it.",
     blurb: "Stay sharp after WhatsApp's squeeze.",
   },
-  // -------------------------------------------------------------------------
-  // "Coming soon" placeholders — scaffolded so the engine + UI are already
-  // profile-driven. Do NOT build these in v1 (see spec §17).
-  // -------------------------------------------------------------------------
   {
     id: "instagram-reels",
     label: "Instagram Reels",
-    status: "soon",
+    status: "live",
+    slug: "instagram-reels-video",
     icon: "Camera",
     aspect: "9:16",
     maxWidth: 1080,
@@ -43,13 +43,14 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     sizeCapMB: 100,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 128 },
-    shareHint: "Coming soon.",
+    shareHint: "Tap Share, then post the saved video as a Reel from the Instagram app.",
     blurb: "Vertical reels, ready to post.",
   },
   {
     id: "instagram-story",
     label: "Instagram Story",
-    status: "soon",
+    status: "live",
+    slug: "instagram-story-video",
     icon: "Camera",
     aspect: "9:16",
     maxWidth: 1080,
@@ -59,13 +60,14 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     sizeCapMB: 100,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 128 },
-    shareHint: "Coming soon.",
+    shareHint: "Tap Share, then add the saved video to your Story from the Instagram app.",
     blurb: "Crisp 9:16 stories.",
   },
   {
     id: "youtube-shorts",
     label: "YouTube Shorts",
-    status: "soon",
+    status: "live",
+    slug: "youtube-shorts-video",
     icon: "Clapperboard",
     aspect: "9:16",
     maxWidth: 1080,
@@ -75,43 +77,48 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     sizeCapMB: 256,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 192 },
-    shareHint: "Coming soon.",
+    shareHint: "Download, then upload it as a Short from the YouTube app.",
     blurb: "Short-form, high bitrate.",
   },
   {
     id: "youtube-long",
     label: "YouTube",
-    status: "soon",
+    status: "live",
+    slug: "youtube-video",
     icon: "Clapperboard",
     aspect: "16:9",
     maxWidth: 1920,
     maxHeight: 1080,
-    maxDurationSec: 60 * 60,
+    maxDurationSec: 60 * 10,
     fpsCap: 60,
+    sizeCapMB: 0,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 256 },
-    shareHint: "Coming soon.",
+    shareHint: "Download, then upload it to YouTube from your computer or the app.",
     blurb: "Landscape, high-bitrate uploads.",
   },
   {
     id: "facebook-video",
     label: "Facebook Video",
-    status: "soon",
+    status: "live",
+    slug: "facebook-video",
     icon: "ThumbsUp",
     aspect: "16:9",
     maxWidth: 1920,
     maxHeight: 1080,
-    maxDurationSec: 60 * 20,
+    maxDurationSec: 60 * 10,
     fpsCap: 30,
+    sizeCapMB: 0,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 192 },
-    shareHint: "Coming soon.",
+    shareHint: "Download, then post it to your feed from the Facebook app.",
     blurb: "Landscape video for the feed.",
   },
   {
     id: "facebook-story",
     label: "Facebook Story",
-    status: "soon",
+    status: "live",
+    slug: "facebook-story-video",
     icon: "ThumbsUp",
     aspect: "9:16",
     maxWidth: 1080,
@@ -121,16 +128,20 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     sizeCapMB: 100,
     bitrateStrategy: "overprovision",
     audio: { codec: "aac", bitrateKbps: 128 },
-    shareHint: "Coming soon.",
+    shareHint: "Tap Share, then add the saved video to your Story from the Facebook app.",
     blurb: "Vertical stories for Facebook.",
   },
 ];
 
-/** The default (and only live) profile in v1. */
+/** The default profile (WhatsApp Status). */
 export const DEFAULT_PROFILE_ID = "whatsapp-status";
 
 export function getProfile(id: string): PlatformProfile | undefined {
   return PLATFORM_PROFILES.find((p) => p.id === id);
+}
+
+export function getProfileBySlug(slug: string): PlatformProfile | undefined {
+  return PLATFORM_PROFILES.find((p) => p.slug === slug);
 }
 
 export function getLiveProfiles(): PlatformProfile[] {

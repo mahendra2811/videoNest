@@ -22,7 +22,7 @@ export function PlatformTile({ profile }: { profile: PlatformProfile }) {
   if (isLive) {
     return (
       <Link
-        href="/whatsapp-status-video"
+        href={`/${profile.slug}`}
         className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-border bg-surface p-5 shadow-warm transition-all hover:shadow-warm-lg"
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sunset text-white">

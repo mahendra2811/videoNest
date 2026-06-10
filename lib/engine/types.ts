@@ -7,6 +7,8 @@ export type PlatformProfile = {
   id: string;
   label: string;
   status: "live" | "soon";
+  /** Route slug for this platform's tool page (e.g. "instagram-reels-video"). */
+  slug: string;
   /** lucide-react icon name (resolved in the UI). */
   icon: string;
   aspect: "9:16" | "16:9" | "source";

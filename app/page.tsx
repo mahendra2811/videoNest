@@ -20,7 +20,7 @@ export default function HomePage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Choose a platform</h2>
           <p className="mt-2 text-muted">
-            WhatsApp Status is ready now. More platforms are on the way.
+            Pick where you're posting — each one is tuned to that platform's specs.
           </p>
         </div>
         <PlatformGrid />

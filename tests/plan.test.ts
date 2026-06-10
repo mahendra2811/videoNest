@@ -111,3 +111,50 @@ describe("buildPlan — WhatsApp Status profile", () => {
     expect(plan.fastPath).toBe(false);
   });
 });
+
+const igReels = getProfile("instagram-reels");
+const ytLong = getProfile("youtube-long");
+if (!igReels) throw new Error("instagram-reels profile missing");
+if (!ytLong) throw new Error("youtube-long profile missing");
+
+describe("buildPlan — 16:9 profile (YouTube)", () => {
+  it("4K landscape → downscaled to 1920×1080, no pad", () => {
+    const plan = buildPlan(meta({ width: 3840, height: 2160, durationSec: 120, fps: 30 }), ytLong);
+    expect(plan.blurPad).toBe(false);
+    expect(plan.targetWidth).toBe(1920);
+    expect(plan.targetHeight).toBe(1080);
+    expect(plan.targetWidth % 2).toBe(0);
+    expect(plan.targetHeight % 2).toBe(0);
+  });
+
+  it("vertical source → blurred pad to 16:9 (1920×1080)", () => {
+    const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 120 }), ytLong);
+    expect(plan.blurPad).toBe(true);
+    expect(plan.targetWidth).toBe(1920);
+    expect(plan.targetHeight).toBe(1080);
+  });
+
+  it("16:9 source already optimal → fast path", () => {
+    const plan = buildPlan(
+      meta({ width: 1920, height: 1080, durationSec: 120, sizeBytes: 50 * 1024 * 1024 }),
+      ytLong,
+    );
+    expect(plan.fastPath).toBe(true);
+    expect(plan.blurPad).toBe(false);
+  });
+});
+
+describe("buildPlan — overprovision bitrate strategy", () => {
+  it("uses a high quality-first bitrate within the clamp range", () => {
+    const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 30 }), igReels);
+    expect(plan.videoBitrate).toBeGreaterThanOrEqual(4_000_000);
+    expect(plan.videoBitrate).toBeLessThanOrEqual(20_000_000);
+  });
+
+  it("respects the platform size cap for long clips", () => {
+    // 100 MB over 90s ≈ 9.3 Mbps total; video must stay under that budget.
+    const plan = buildPlan(meta({ width: 1920, height: 1080, durationSec: 90 }), igReels);
+    const budgetBitrate = (100 * 1024 * 1024 * 8) / 90;
+    expect(plan.videoBitrate).toBeLessThan(budgetBitrate);
+  });
+});

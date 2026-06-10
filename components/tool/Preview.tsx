@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { getPlatformContent } from "@/lib/content/platforms";
 import type { OptimizeResult } from "@/lib/engine/types";
 import { formatBytes, formatResolution } from "@/lib/utils";
 
@@ -12,12 +13,15 @@ export function Preview({
   inputUrl,
   outputUrl,
   result,
+  profileId,
 }: {
   inputUrl: string | null;
   outputUrl: string | null;
   result: OptimizeResult;
+  profileId: string;
 }) {
   const [view, setView] = React.useState<View>("after");
+  const promise = getPlatformContent(profileId).promise;
 
   const { output, meta } = result;
   const inSize = meta.sizeBytes;
@@ -70,10 +74,7 @@ export function Preview({
         />
       </div>
 
-      <p className="text-center text-xs text-muted">
-        WhatsApp re-compresses every Status video. We can't stop that — this file is prepared so it
-        stays as sharp as possible after WhatsApp's pass.
-      </p>
+      <p className="text-center text-xs text-muted">{promise}</p>
     </motion.div>
   );
 }

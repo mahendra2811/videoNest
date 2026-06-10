@@ -39,11 +39,12 @@ export default function AboutPage() {
           never will.
         </p>
 
-        <h2>What's next</h2>
+        <h2>Platforms</h2>
         <p>
-          WhatsApp Status is live today. Instagram Reels and Stories, YouTube Shorts and Facebook
-          are on the roadmap — each tuned to its own requirements. The architecture is built to add
-          them one at a time, without compromising the privacy-first, on-device promise.
+          VideoNest now optimizes for WhatsApp Status, Instagram Reels and Stories, YouTube and
+          YouTube Shorts, and Facebook video and Stories — each tuned to that platform's own specs
+          (aspect ratio, resolution, duration and bitrate). Everything still runs on your device,
+          and the privacy-first, on-device promise never changes as we add more.
         </p>
       </Prose>
 

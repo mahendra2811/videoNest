@@ -8,9 +8,11 @@ so it stays as sharp as possible after WhatsApp re-compresses it.
 > prevent that. NEVER use the words "no quality loss" or "lossless" anywhere in UI/marketing
 > copy. The promise is **"stays sharp" / "best possible quality after WhatsApp compresses it."**
 
-v1 scope: WhatsApp Status only, no backend, no upload, no accounts, free. Other platforms are
-locked "Coming soon" tiles. The full spec lives in `videonest-build-spec.md` (read it before
-large changes).
+Scope: 100% client-side, no backend, no upload, no accounts, free. **All platforms are now
+live** — WhatsApp Status, Instagram Reels & Story, YouTube & YouTube Shorts, Facebook Video &
+Story — each a registry-driven tool page at its own slug (e.g. `/instagram-reels-video`). The
+original spec (`videonest-build-spec.md`) shipped WhatsApp-only; the others were flipped live
+afterward via the profile registry. Read the spec before large changes.
 
 ## Commands
 
@@ -100,12 +102,20 @@ elsewhere.
 - Accessibility: keyboard-navigable, visible sunset focus rings, `prefers-reduced-motion` honored,
   proper aria on dropzone/progress/toggle/tiles.
 
+## Adding / changing a platform
+
+All platforms are data-driven from `lib/config/profiles.ts` (a `PlatformProfile` with a `slug`,
+encode params, `aspect`, `bitrateStrategy`) plus per-platform copy in `lib/content/platforms.ts`
+(`getPlatformContent`, with a safe generic fallback). To add one: add a profile entry, add a
+content entry, create `app/<slug>/page.tsx` (two lines — `buildToolMetadata` + `<ToolPage>`), and
+it auto-appears in the home grid (`PlatformGrid`) and `sitemap.ts`. The `/add-platform` slash
+command documents this. Keep copy honest (no "lossless").
+
 ## Do NOT build now (deferred — spec §17)
 
-Scaffold-only; these are explicitly out of scope for v1. Document/scaffold, don't implement:
-server heavy-tier for 4K/long sources, WhatsApp auto-split (>30s → segments), flipping more
-platforms live, cookie-consent banner, blog, native (Capacitor) wrapper, Hindi i18n. The profile
-registry + worker engine + share adapters are structured to make these additive, not rewrites.
+Still out of scope: server heavy-tier for 4K/long sources (browser caps inputs at 10 min / 500 MB),
+auto-split of long clips into segments, cookie-consent banner, blog, native (Capacitor) wrapper,
+Hindi i18n. The profile registry + worker engine + share adapters keep these additive, not rewrites.
 
 ## Layout
 

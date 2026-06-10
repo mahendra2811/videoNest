@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     icon: Share2,
-    title: "Share to Status or download",
-    body: "Post straight to WhatsApp Status, or save the file.",
+    title: "Share or download",
+    body: "Post straight to the app, or save the optimized file.",
   },
 ];
 

@@ -6,7 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
-import { DEFAULT_PROFILE_ID } from "@/lib/config/profiles";
+import { DEFAULT_PROFILE_ID, getProfile } from "@/lib/config/profiles";
 import { optimize, probeFile } from "@/lib/engine";
 import { EngineError, INPUT_LIMITS } from "@/lib/engine/types";
 import { useToolStore } from "@/lib/store/tool";
@@ -19,6 +19,7 @@ import { ProcessingRing } from "./ProcessingRing";
 import { ShareActions } from "./ShareActions";
 
 export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: string }) {
+  const platformLabel = getProfile(profileId)?.label ?? "this platform";
   const {
     phase,
     file,
@@ -88,7 +89,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
       });
       if (res.plan.trimToSec) {
         toast.info(
-          `Trimmed to the first ${formatDuration(res.plan.trimToSec)} for WhatsApp Status.`,
+          `Trimmed to the first ${formatDuration(res.plan.trimToSec)} for ${platformLabel}.`,
         );
       }
       toast.success("Your video is ready to share.");
@@ -105,7 +106,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     } finally {
       abortRef.current = null;
     }
-  }, [file, profileId, startProcessing, setProgress, setDone, setError]);
+  }, [file, profileId, platformLabel, startProcessing, setProgress, setDone, setError]);
 
   const handleCancel = React.useCallback(() => {
     abortRef.current?.abort();
@@ -140,7 +141,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button onClick={handleOptimize} size="lg" className="flex-1" disabled={probing}>
                 <Sparkles className="h-5 w-5" />
-                Optimize for WhatsApp Status
+                Optimize for {platformLabel}
               </Button>
               <Button onClick={reset} variant="ghost" size="lg">
                 Change video
@@ -162,8 +163,17 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-6"
           >
-            <Preview inputUrl={inputUrl} outputUrl={outputUrl} result={result} />
-            <ShareActions blob={result.blob} filename={result.output.filename} />
+            <Preview
+              inputUrl={inputUrl}
+              outputUrl={outputUrl}
+              result={result}
+              profileId={profileId}
+            />
+            <ShareActions
+              blob={result.blob}
+              filename={result.output.filename}
+              profileId={profileId}
+            />
             <Button onClick={reset} variant="ghost">
               Optimize another video
             </Button>
