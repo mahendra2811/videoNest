@@ -8,6 +8,7 @@ import ffmpegStatic from "ffmpeg-static";
 import { type NextRequest, NextResponse } from "next/server";
 import { getProfile } from "@/lib/config/profiles";
 import type { PlatformProfile } from "@/lib/engine/types";
+import { isSameOrigin, MAX_SOURCE_BYTES, parseAllowedBlobUrl } from "@/lib/heavy/server";
 
 // Heavy-tier transcode runs on a Node serverless function. It only activates
 // when a Vercel Blob token is configured; otherwise it returns 503 and the app
@@ -102,6 +103,10 @@ export async function POST(req: NextRequest) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json({ error: "Server tier is not configured." }, { status: 503 });
   }
+  // Block trivial cross-site abuse of this compute endpoint.
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  }
 
   let body: { blobUrl?: string; profileId?: string };
   try {
@@ -118,8 +123,10 @@ export async function POST(req: NextRequest) {
   if (!profile) {
     return NextResponse.json({ error: "Unknown profile." }, { status: 400 });
   }
-  // Only process URLs from our own Blob store.
-  if (!/\.public\.blob\.vercel-storage\.com\//.test(blobUrl)) {
+  // SSRF guard: parse the URL and require our Blob host + upload prefix (not a
+  // substring match). `allowed` is false for anything off-host/credentialed.
+  const allowed = parseAllowedBlobUrl(blobUrl);
+  if (!allowed.ok) {
     return NextResponse.json({ error: "Invalid source URL." }, { status: 400 });
   }
 
@@ -130,7 +137,17 @@ export async function POST(req: NextRequest) {
   try {
     const res = await fetch(blobUrl);
     if (!res.ok) throw new Error("Could not fetch the uploaded file.");
-    await writeFile(inPath, Buffer.from(await res.arrayBuffer()));
+    // Reject oversized sources (mirrors the upload cap) — check the header and
+    // the actual byte length.
+    const declared = Number(res.headers.get("content-length") ?? "0");
+    if (declared > MAX_SOURCE_BYTES) {
+      throw new Error("Source file exceeds the size limit.");
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.byteLength > MAX_SOURCE_BYTES) {
+      throw new Error("Source file exceeds the size limit.");
+    }
+    await writeFile(inPath, buf);
 
     await runFfmpeg(buildArgs(profile, inPath, outPath));
 

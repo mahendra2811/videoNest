@@ -1,14 +1,23 @@
 import { type HandleUploadBody, handleUpload } from "@vercel/blob/client";
 import { type NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/heavy/server";
 
 // Issues short-lived client-upload tokens so the browser can upload the source
 // directly to Vercel Blob (avoiding the serverless request-body size limit).
 // Returns 503 unless a Blob token is configured.
+//
+// NOTE for production: add per-IP / per-session rate limiting (e.g. Vercel KV
+// or Upstash) on top of the same-origin check below — this endpoint hands out
+// upload capability and should be throttled to prevent storage abuse.
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json({ error: "Server tier is not configured." }, { status: 503 });
+  }
+  // Only allow our own origin to mint upload tokens.
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
   const body = (await request.json()) as HandleUploadBody;
