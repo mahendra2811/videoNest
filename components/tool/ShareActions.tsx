@@ -60,7 +60,7 @@ export function ShareActions({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row">
         {canShare && (
-          <Button onClick={handleShare} className="flex-1" size="lg">
+          <Button onClick={handleShare} className="h-14 flex-1 text-base" size="lg">
             <Share2 className="h-5 w-5" />
             {content.shareButtonLabel}
           </Button>
@@ -68,7 +68,7 @@ export function ShareActions({
         <Button
           onClick={handleDownload}
           variant={canShare ? "secondary" : "primary"}
-          className="flex-1"
+          className="h-14 flex-1 text-base"
           size="lg"
         >
           <Download className="h-5 w-5" />

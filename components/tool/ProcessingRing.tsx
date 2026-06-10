@@ -69,17 +69,17 @@ export function ProcessingRing({
             transition={{ type: "spring", stiffness: 80, damping: 20 }}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
           <span className="font-mono text-4xl font-bold tabular-nums">{pct}%</span>
-          <span className="mt-1 text-sm font-medium text-muted">{label}</span>
+          <span className="mt-1 max-w-full truncate text-sm font-medium text-muted">{label}</span>
         </div>
       </div>
 
       <p className="max-w-xs text-center text-sm text-muted">
-        Processing on your device — nothing is uploaded. Keep this tab open.
+        Making your video sharp — keep this open.
       </p>
 
-      <Button variant="secondary" onClick={onCancel}>
+      <Button variant="secondary" size="lg" onClick={onCancel}>
         Cancel
       </Button>
     </div>

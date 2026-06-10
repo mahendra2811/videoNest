@@ -96,7 +96,7 @@ export async function runOptimize(
     throw new EngineError("TOO_LARGE", "This file is larger than the 500 MB limit.");
   }
 
-  onProgress({ stage: "analyzing", value: 0.02, label: "Analyzing your video" });
+  onProgress({ stage: "analyzing", value: 0.02, label: "Analyzing" });
   const meta = await probe(file);
 
   if (meta.durationSec > INPUT_LIMITS.maxDurationSec) {
@@ -105,7 +105,7 @@ export async function runOptimize(
 
   const profile = requireProfile(profileId);
   const basePlan = buildPlan(meta, profile);
-  onProgress({ stage: "analyzing", value: 0.05, label: "Planning the optimization" });
+  onProgress({ stage: "analyzing", value: 0.05, label: "Analyzing" });
 
   const wcSupported = await canUseWebCodecs(basePlan);
 
@@ -151,7 +151,7 @@ export async function runOptimize(
       onProgress({
         stage: "optimizing",
         value: overall,
-        label: total > 1 ? `Optimizing part ${i + 1} of ${total}` : "Optimizing on your device",
+        label: total > 1 ? `Part ${i + 1} of ${total}` : "Optimizing",
       });
     };
 
@@ -174,6 +174,6 @@ export async function runOptimize(
     results.push(makeResult(enc.result, enc.plan, enc.path, part));
   }
 
-  onProgress({ stage: "finishing", value: 0.99, label: "Finishing up" });
+  onProgress({ stage: "finishing", value: 0.99, label: "Finishing" });
   return results;
 }

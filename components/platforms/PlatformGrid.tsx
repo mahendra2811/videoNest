@@ -13,28 +13,30 @@ const BRANDS: { brand: Brand; name: string; Icon: IconType; color: string }[] = 
   { brand: "facebook", name: "Facebook", Icon: SiFacebook, color: "#1877F2" },
 ];
 
-/** Four brand cards, each linking to its formats (Status / Reels / Shorts…). */
+/** Four brand cards, each with big tappable format buttons. */
 export function PlatformGrid() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {BRANDS.map(({ brand, name, Icon, color }) => {
         const formats = PLATFORM_PROFILES.filter((p) => p.brand === brand && p.status === "live");
         if (formats.length === 0) return null;
         return (
           <div
             key={brand}
-            className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-3 shadow-warm sm:p-4"
+            className="flex flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-warm"
           >
-            <div className="flex items-center gap-2">
-              <Icon className="h-5 w-5 shrink-0" style={{ color }} aria-hidden />
-              <span className="text-sm font-bold tracking-tight">{name}</span>
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2">
+                <Icon className="h-5 w-5" style={{ color }} aria-hidden />
+              </span>
+              <span className="font-bold tracking-tight">{name}</span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {formats.map((p) => (
                 <Link
                   key={p.id}
                   href={`/${p.slug}`}
-                  className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-xs font-medium text-foreground transition-colors hover:border-transparent hover:bg-sunset hover:text-white"
+                  className="flex h-11 flex-1 items-center justify-center rounded-2xl border border-border bg-surface-2 px-3 text-sm font-semibold text-foreground transition-colors hover:border-transparent hover:bg-sunset hover:text-white"
                 >
                   {p.format}
                 </Link>

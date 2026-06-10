@@ -16,7 +16,6 @@ import { useToolStore } from "@/lib/store/tool";
 import { formatDuration } from "@/lib/utils";
 import { Dropzone } from "./Dropzone";
 import { ErrorCard } from "./ErrorCard";
-import { FileMeta } from "./FileMeta";
 import { Preview } from "./Preview";
 import { ProcessingRing } from "./ProcessingRing";
 import { SegmentResults } from "./SegmentResults";
@@ -27,7 +26,6 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
   const {
     phase,
     file,
-    meta,
     probing,
     progress,
     results,
@@ -151,9 +149,9 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
               ? {
                   stage: "optimizing",
                   value: 0.02 + (p.value ?? 0) * 0.5,
-                  label: `Uploading ${Math.round((p.value ?? 0) * 100)}%`,
+                  label: "Uploading",
                 }
-              : { stage: "optimizing", value: 0.6, label: "Optimizing on our server" },
+              : { stage: "optimizing", value: 0.6, label: "Optimizing" },
           ),
         controller.signal,
       );
@@ -245,18 +243,31 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-4"
           >
-            <FileMeta file={file} meta={meta} loading={probing} />
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button onClick={handleOptimize} size="lg" className="flex-1" disabled={probing}>
-                <Sparkles className="h-5 w-5" />
-                Optimize for {platformLabel}
-              </Button>
-              <Button onClick={reset} variant="ghost" size="lg">
-                Change video
-              </Button>
-            </div>
+            {inputUrl && (
+              <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-3xl border border-border bg-black">
+                <video
+                  src={inputUrl}
+                  muted
+                  playsInline
+                  controls
+                  className="max-h-[46vh] w-full object-contain"
+                />
+              </div>
+            )}
+            <Button
+              onClick={handleOptimize}
+              size="lg"
+              className="h-14 w-full text-base"
+              disabled={probing}
+            >
+              <Sparkles className="h-5 w-5" />
+              {probing ? "Reading your video…" : "Make it sharp"}
+            </Button>
+            <Button onClick={reset} variant="secondary" size="lg" className="w-full">
+              Choose another video
+            </Button>
             {flags.serverTierEnabled && (
               <button
                 type="button"
@@ -264,7 +275,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
                 disabled={probing}
                 className="text-center text-xs text-muted underline underline-offset-4 hover:text-foreground"
               >
-                Heavy 4K or long clip? Optimize on our server instead (uploads your video).
+                Big clip giving trouble? Try our server instead.
               </button>
             )}
           </motion.div>
@@ -300,7 +311,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
             ) : (
               <SegmentResults results={results} outputUrls={outputUrls} profileId={profileId} />
             )}
-            <Button onClick={reset} variant="ghost">
+            <Button onClick={reset} variant="secondary" size="lg" className="w-full">
               Optimize another video
             </Button>
           </motion.div>

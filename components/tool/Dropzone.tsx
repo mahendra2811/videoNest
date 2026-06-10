@@ -64,9 +64,9 @@ export function Dropzone({ onAccept }: { onAccept: (file: File) => void }) {
         </div>
         <div className="space-y-1">
           <p className="text-lg font-bold tracking-tight">
-            {isDragActive ? "Drop to load your video" : "Drop a video or tap to choose"}
+            {isDragActive ? "Drop your video" : "Add your video"}
           </p>
-          <p className="text-sm text-muted">MP4, MOV, WebM, MKV, AVI · up to 500 MB</p>
+          <p className="text-sm text-muted">Tap to choose a video from your device</p>
         </div>
         <button
           type="button"
@@ -74,13 +74,10 @@ export function Dropzone({ onAccept }: { onAccept: (file: File) => void }) {
             e.stopPropagation();
             open();
           }}
-          className="rounded-2xl bg-sunset px-5 py-2.5 text-sm font-semibold text-white shadow-warm transition-all hover:shadow-warm-lg active:scale-[0.98]"
+          className="h-12 rounded-2xl bg-sunset px-6 text-sm font-semibold text-white shadow-warm transition-all hover:shadow-warm-lg active:scale-[0.98]"
         >
           Choose a video
         </button>
-        <p className="text-xs text-muted">
-          Your video never leaves your device — everything happens in your browser.
-        </p>
       </div>
     </motion.div>
   );
