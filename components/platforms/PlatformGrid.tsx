@@ -36,7 +36,7 @@ export function PlatformGrid() {
                 <Link
                   key={p.id}
                   href={`/${p.slug}`}
-                  className="flex h-11 flex-1 items-center justify-center rounded-2xl border border-border bg-surface-2 px-3 text-sm font-semibold text-foreground transition-colors hover:border-transparent hover:bg-sunset hover:text-white"
+                  className="flex h-11 flex-1 items-center justify-center rounded-2xl border border-border bg-surface-2 px-3 text-sm font-semibold text-foreground transition-colors hover:border-transparent"
                 >
                   {p.format}
                 </Link>
