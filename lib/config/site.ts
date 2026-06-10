@@ -15,7 +15,7 @@ const siteUrl = rawUrl.replace(/\/+$/, "");
 export const siteConfig = {
   name: env("NEXT_PUBLIC_SITE_NAME", "VideoNest"),
   url: siteUrl,
-  contactEmail: env("NEXT_PUBLIC_CONTACT_EMAIL", "hello@videonest.app"),
+  contactEmail: env("NEXT_PUBLIC_CONTACT_EMAIL", "mahendrapuniya92@gmail.com"),
   description:
     "Post videos to WhatsApp Status and keep them sharp. VideoNest prepares your video on your device so it stays crisp after WhatsApp compresses it. Free, private, no upload.",
   tagline: "Post videos to WhatsApp Status — and keep them sharp.",

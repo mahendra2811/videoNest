@@ -8,7 +8,7 @@
 
 Build **VideoNest**, a mobile-first web app that takes any video the user provides and re-encodes it — entirely on the user's device — into the cleanest possible file for posting to **WhatsApp Status**, so it stays as sharp as possible after WhatsApp applies its own compression.
 
-**Prime directive — be honest in all copy:** WhatsApp always re-compresses Status uploads. We cannot prevent that. We *minimize* the damage by feeding WhatsApp an optimally-prepared file. Never use the words "no quality loss" or "lossless." The promise is "stays sharp" / "best possible quality after WhatsApp compresses it."
+**Prime directive — be honest in all copy:** WhatsApp always re-compresses Status uploads. We cannot prevent that. We _minimize_ the damage by feeding WhatsApp an optimally-prepared file. Never use the words "no quality loss" or "lossless." The promise is "stays sharp" / "best possible quality after WhatsApp compresses it."
 
 **v1 scope:** WhatsApp Status only, **100% client-side** (no backend, no upload, nothing leaves the device, no accounts, no login, fully free). Other platforms (Instagram, YouTube, Facebook) appear as locked "Coming soon" tiles. See §17 for the deferred roadmap — scaffold for it, do not build it.
 
@@ -51,6 +51,7 @@ Output target for the WhatsApp Status profile:
 - **2-second closed GOP** (keyframe interval = 2× fps).
 
 **Automatic behaviors (v1):**
+
 - **Duration:** if the clip is longer than **30 seconds, trim to the first 30s** and toast the user that it was trimmed (auto-split into multiple segments is a v1.1 feature — see §17).
 - **Aspect ratio:** if the source is already ~9:16, leave dimensions alone (downscale only if larger). If it is horizontal or any other ratio, **pad to 9:16 using a blurred, scaled copy of the video as the background** (no user toggle in v1).
 - **Already-optimal fast path:** if the source is already H.264 / yuv420p / ≤1080×1920 / ≤30fps / 9:16 / <15 MB, do a minimal high-quality re-encode (or remux) rather than an aggressive transform — never double-degrade a good file.
@@ -65,7 +66,9 @@ Output target for the WhatsApp Status profile:
 **Theme:** **light is primary and gets the most polish**; dark is available via `next-themes`. Both must be WCAG-AA contrast-safe.
 
 ### 4.1 Color tokens (CSS variables, Tailwind v4 `@theme`)
+
 Brand sunset gradient: **`#FF8C42` (orange) → `#FF5E78` (coral) → `#FF2E93` (pink)**, diagonal (135°).
+
 - `--brand-from: #FF8C42; --brand-via: #FF5E78; --brand-to: #FF2E93;`
 - Gradient utility: a reusable `.bg-sunset` (`linear-gradient(135deg, var(--brand-from), var(--brand-via), var(--brand-to))`) and `.text-sunset` (gradient clipped to text).
 - **Light theme:** background warm off-white `#FFF9F5`, surfaces `#FFFFFF`, text `#1A1416`, muted `#6B5B60`, border `#F0E4DE`.
@@ -73,9 +76,11 @@ Brand sunset gradient: **`#FF8C42` (orange) → `#FF5E78` (coral) → `#FF2E93` 
 - The sunset gradient is used **only** on: the logo, primary CTA buttons, the processing progress ring, the top loader bar, the splash animation, and subtle hero accents. Body text and surfaces stay neutral so the gradient feels premium, not loud.
 
 ### 4.2 Typography
+
 - Font: **Geist** (via `next/font`), with **Geist Mono** for any code/numbers (the % readout). Headings tight tracking, large; body comfortable line-height.
 
 ### 4.3 Shape & motion
+
 - Radius: `rounded-2xl` cards/buttons, `rounded-3xl` major panels. Soft, warm shadows (not harsh black).
 - Framer Motion: gentle fade/slide on mount, spring on interactive elements, smooth crossfade on the before/after preview. Respect `prefers-reduced-motion`.
 
@@ -95,6 +100,7 @@ Brand sunset gradient: **`#FF8C42` (orange) → `#FF5E78` (coral) → `#FF2E93` 
   <circle cx="24" cy="19.5" r="2.3" fill="#fff"/>
 </svg>
 ```
+
 The wordmark renders the badge next to `VideoNest` (text) where `Nest` may use `.text-sunset`. Generate favicon, apple-touch-icon, and PWA icons (192/512, maskable) from this badge.
 
 ---
@@ -167,8 +173,8 @@ videonest/
 ```
 # Brand
 NEXT_PUBLIC_SITE_NAME=VideoNest
-NEXT_PUBLIC_SITE_URL=https://videonest.app
-NEXT_PUBLIC_CONTACT_EMAIL=hello@videonest.app
+NEXT_PUBLIC_SITE_URL=https://videonest.pooniya.com
+NEXT_PUBLIC_CONTACT_EMAIL=mahendrapuniya92@gmail.com
 
 # Analytics (disabled if blank)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
@@ -196,13 +202,19 @@ NEXT_PUBLIC_SENTRY_DSN=
 
 ```ts
 type PlatformProfile = {
-  id: string; label: string; status: 'live' | 'soon'; icon: string;
-  aspect: '9:16' | '16:9' | 'source';
-  maxWidth: number; maxHeight: number; maxDurationSec: number;
-  fpsCap: number; sizeCapMB?: number;
-  bitrateStrategy: 'constrained' | 'overprovision';
-  audio: { codec: 'aac'; bitrateKbps: number };
-  shareHint: string;   // device-specific "best way" copy
+  id: string;
+  label: string;
+  status: "live" | "soon";
+  icon: string;
+  aspect: "9:16" | "16:9" | "source";
+  maxWidth: number;
+  maxHeight: number;
+  maxDurationSec: number;
+  fpsCap: number;
+  sizeCapMB?: number;
+  bitrateStrategy: "constrained" | "overprovision";
+  audio: { codec: "aac"; bitrateKbps: number };
+  shareHint: string; // device-specific "best way" copy
 };
 ```
 
@@ -211,11 +223,13 @@ type PlatformProfile = {
 ## 8. The encode engine (module design — describe & implement the behavior, you choose the code)
 
 Public API (`lib/engine/index.ts`):
+
 ```ts
 optimize(file: File, profileId: string, onProgress: (p: Progress) => void, signal?: AbortSignal): Promise<{ blob: Blob; meta: VideoMeta; output: OutputInfo }>
 ```
 
 Flow:
+
 1. **probe(file)** → `VideoMeta { container, vcodec, width, height, fps, durationSec, bitrate, pixfmt, hasAudio, rotation, sizeBytes }`. Use Mediabunny where possible; fall back to ffmpeg.wasm `ffprobe`-style metadata if needed.
 2. **buildPlan(meta, profile)** → `EncodePlan` applying §3 rules: decide target W/H (downscale-only), fps cap, whether to blur-pad (non-9:16), whether to trim (>30s), the already-optimal fast path, bitrate/size budget, audio settings.
 3. **capabilities()** → check `VideoEncoder.isConfigSupported` for H.264 (`avc1.640028`/`avc1.64002A`). Choose **WebCodecs** path if supported, else **ffmpeg.wasm** path.
@@ -235,13 +249,15 @@ Unit-test `buildPlan` (`tests/`): vertical-already-optimal, horizontal-needs-pad
 > Use this copy. Keep it honest and warm. Headlines may use `.text-sunset` on a key phrase. Each page: proper `<title>`/meta description, canonical, OG image.
 
 ### 9.1 `/` — Home / platform hub
+
 - **Hero:** H1 **"Post videos to WhatsApp Status — and keep them sharp."** Sub: "WhatsApp squeezes every Status video. VideoNest prepares yours so it stays crisp after the squeeze. Free, private, and it never leaves your phone." Primary CTA → `/whatsapp-status-video` ("Optimize a video"). Secondary → `/how-it-works`.
 - **TrustNote** strip: "100% on-device • No upload • No sign-up • Free."
 - **PlatformGrid:** tiles from the profile registry. WhatsApp Status = active (links to tool). Others = locked with a "Coming soon" badge; tapping shows a Sonner toast: "Instagram Reels support is coming soon."
-- **Steps** (mini "how it works"): 1 Pick a video · 2 We optimize it on your device · 3 Share to Status or download. 
+- **Steps** (mini "how it works"): 1 Pick a video · 2 We optimize it on your device · 3 Share to Status or download.
 - **FAQ** (accordion): "Will it look exactly like the original?" (No — WhatsApp always re-compresses; we make it as sharp as possible after that.) "Do you upload my video?" (No, everything happens in your browser.) "Is it free?" (Yes.) "Why does WhatsApp make my videos blurry?" (short explanation, link to /how-it-works.)
 
 ### 9.2 `/whatsapp-status-video` — the tool (primary screen)
+
 - Short H1 + one-line promise. Then the `ToolScreen` flow:
   - **Idle:** `Dropzone` ("Drop a video or tap to choose • MP4, MOV, WebM, MKV, AVI").
   - **Selected:** `FileMeta` (resolution, duration, size, codec) + "Optimize" button.
@@ -253,21 +269,27 @@ Unit-test `buildPlan` (`tests/`): vertical-already-optimal, horizontal-needs-pad
 - Below the tool: a compact "how it works" + FAQ for SEO.
 
 ### 9.3 `/how-it-works`
+
 Real explanatory article (SEO + trust): why Status looks blurry (WhatsApp re-encodes, caps ~16MB, downscales toward ≤720p), what VideoNest does (prepares a clean, correctly-sized H.264 file so WhatsApp's pass does minimal extra damage), why on-device matters (privacy + speed), and tips (upload from the WhatsApp **mobile app**, not WhatsApp Web; enable HD in WhatsApp settings). Honest, no overclaiming.
 
 ### 9.4 `/about`
+
 Short brand story: VideoNest is a free, privacy-first toolkit that helps your videos survive social platform compression, starting with WhatsApp Status, with more platforms coming. Built for people who are tired of blurry posts.
 
-### 9.5 `/privacy-policy` *(template — instruct user in README to have it reviewed before relying on it)*
+### 9.5 `/privacy-policy` _(template — instruct user in README to have it reviewed before relying on it)_
+
 Cover: **no video ever leaves the device** (all processing in the browser); we don't store or see user files; what analytics we use **if enabled** (GA4/GTM — anonymous usage), cookies used by analytics/ads **if enabled**; contact form data handling **if Formspree enabled**; no accounts; third-party links; children; changes; contact email. Write it so it reads correctly whether or not analytics/ads are on (use conditional, accurate language).
 
-### 9.6 `/terms` *(template — review before relying on it)*
+### 9.6 `/terms` _(template — review before relying on it)_
+
 Standard: acceptance, description of the free service, "provided as-is" no warranty (including that we don't control WhatsApp's compression), acceptable use, IP, limitation of liability, changes, governing law placeholder, contact.
 
 ### 9.7 `/contact`
+
 Simple form (name, email, message). If `NEXT_PUBLIC_FORMSPREE_ID` set → POST to Formspree (no `<form>`-action server needed; use fetch + handlers, per shadcn patterns). If not set → render a `mailto:` link to the contact email instead. Success/error via Sonner.
 
 ### 9.8 `not-found.tsx` + `error.tsx`
+
 Branded 404 and error boundary with sunset accent + link home.
 
 ---
@@ -287,7 +309,7 @@ Branded 404 and error boundary with sunset accent + link home.
   - `UNSUPPORTED_BROWSER` → "Your browser can't process video here. Try Chrome or Safari, or download isn't available — open in another browser."
   - `UNSUPPORTED_CODEC` → auto-try ffmpeg.wasm; if still failing, message + suggest re-saving the video.
   - `TOO_LARGE`/`TOO_LONG` → explain limit (toast already shown at selection).
-  - `OOM` → "This video was too heavy for your device — we retried smaller. If it still fails, try a shorter clip." 
+  - `OOM` → "This video was too heavy for your device — we retried smaller. If it still fails, try a shorter clip."
   - `ENCODE_FAILED`/`DECODE_FAILED` → "Something went wrong processing this video. Try a different file." + retry button.
 - **PlatformTile:** active vs "Coming soon" (badge, dimmed, toast on tap).
 - **AdSlot:** if `flags.adsEnabled` is false → render `null`. If true → render the AdSense unit using the client id. Loads the AdSense script conditionally on the same flag.
@@ -298,11 +320,11 @@ Branded 404 and error boundary with sunset accent + link home.
 ## 11. UX behaviors
 
 - **First load:** AppSplash → fade to app. **Navigation:** toploader bar fills (sunset). **Async content >300ms:** show shadcn `Skeleton` shimmer (don't flash on fast loads).
-- **Processing %:** real, from the worker (frames or wasm progress) — never fake. Label clarifies it's *processing on your device*, not uploading.
+- **Processing %:** real, from the worker (frames or wasm progress) — never fake. Label clarifies it's _processing on your device_, not uploading.
 - **"Best way" device-aware copy near ShareActions:**
-  - Mobile + canShare: *"Tap **Share to WhatsApp**, then choose **My Status**. Quality is the same as downloading — we already optimized it."*
-  - Mobile, no share: *"Tap **Download**, then post it from the WhatsApp app."*
-  - Desktop: *"**Download**, then post from your phone's WhatsApp app (not WhatsApp Web — it compresses harder)."*
+  - Mobile + canShare: _"Tap **Share to WhatsApp**, then choose **My Status**. Quality is the same as downloading — we already optimized it."_
+  - Mobile, no share: _"Tap **Download**, then post it from the WhatsApp app."_
+  - Desktop: _"**Download**, then post from your phone's WhatsApp app (not WhatsApp Web — it compresses harder)."_
 - All toasts top-center via Sonner. Respect reduced-motion. Everything reachable one-handed on mobile (CTAs in the thumb zone).
 
 ---
@@ -318,7 +340,7 @@ Branded 404 and error boundary with sunset accent + link home.
 
 ## 13. PWA
 
-- **Serwist** service worker: precache the shell, runtime-cache static assets; the app must load and run offline (encoding is on-device anyway). 
+- **Serwist** service worker: precache the shell, runtime-cache static assets; the app must load and run offline (encoding is on-device anyway).
 - **manifest.ts:** name/short_name from config, sunset `theme_color`/`background_color`, icons (192/512 + maskable) from the logo, `display: standalone`, `start_url: '/'`. Installable on Android, iOS, desktop. Branded splash via manifest + theme color.
 
 ---
@@ -369,4 +391,4 @@ These are deferred; the architecture above (profile registry + worker engine + s
 - **Native app:** wrap the PWA with Capacitor (or React Native) only after real traction — for app-store discovery and smoother share intents, not for quality gains.
 - **i18n (Hindi):** keep all UI strings centralized so this is a later drop-in.
 
-*End of specification.*
+_End of specification._
