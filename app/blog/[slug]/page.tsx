@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FAQ } from "@/components/marketing/FAQ";
 import { Prose } from "@/components/marketing/Prose";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
 import { BLOG_POSTS, getPost } from "@/lib/content/blog";
-import { blogPostingJsonLd } from "@/lib/seo/jsonld";
+import { blogPostingJsonLd, faqJsonLd } from "@/lib/seo/jsonld";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 type Params = { slug: string };
@@ -43,6 +44,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   return (
     <article className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-14 sm:px-6">
       <JsonLd data={blogPostingJsonLd(post)} />
+      {post.faqs && post.faqs.length > 0 && <JsonLd data={faqJsonLd(post.faqs)} />}
 
       <header className="flex flex-col gap-3">
         <Link href="/blog" className="text-sm font-medium text-muted hover:text-foreground">
@@ -61,6 +63,13 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
       <Prose>
         <Body />
       </Prose>
+
+      {post.faqs && post.faqs.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xl font-bold tracking-tight">Frequently asked</h2>
+          <FAQ items={post.faqs} />
+        </section>
+      )}
 
       <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-surface p-6 text-center">
         <p className="font-semibold">Ready to try it?</p>
