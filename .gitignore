@@ -48,3 +48,11 @@ next-env.d.ts
 public/sw.js
 public/sw.js.map
 public/swe-worker-*.js
+
+# Capacitor native build artifacts (the android/ and ios/ projects are
+# created by `cap add` and may be committed; their build outputs are not)
+/android/app/build/
+/android/build/
+/android/.gradle/
+/ios/App/build/
+/ios/App/Pods/

@@ -127,6 +127,15 @@ behind an explicit opt-in + privacy notice (`ShareActions`/`ErrorCard`/selected-
   Vercel, flip that to `true` (fetches the binary at install) or otherwise provide ffmpeg, and
   load-test — serverless time/memory limits make true 4K/very-long jobs marginal. **Beta.**
 
+## Mobile wrapper (Capacitor)
+
+`capacitor.config.ts` wraps the app for app stores. Because the app has server routes (`api/heavy`)
+it can't be a static export, so the native shell loads the **deployed URL** in a WebView via
+`server.url` (set `CAP_SERVER_URL` or rely on `NEXT_PUBLIC_SITE_URL`). The on-device engine runs
+inside that WebView. Scaffold native projects with `pnpm cap:add:android` / `cap:add:ios` (requires
+Android Studio / Xcode — not run in CI). `@capacitor/*` are devDeps and are NOT imported by web
+code, so they don't affect the Next bundle.
+
 ## Do NOT build now (deferred — spec §17)
 
 Still out of scope: cookie-consent banner, Hindi i18n, and a dedicated long-form compute backend

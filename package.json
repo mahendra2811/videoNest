@@ -12,6 +12,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "gen:icons": "node scripts/generate-icons.mjs",
+    "cap:add:android": "cap add android",
+    "cap:add:ios": "cap add ios",
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios",
     "prepare": "husky || true"
   },
   "dependencies": {
@@ -41,6 +46,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
     "@ffmpeg/core": "^0.12.10",
     "@serwist/next": "^9.5.11",
     "@tailwindcss/postcss": "^4",
