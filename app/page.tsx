@@ -1,5 +1,6 @@
 import { AdSlot } from "@/components/ads/AdSlot";
 import { FAQ } from "@/components/marketing/FAQ";
+import { GetApp } from "@/components/marketing/GetApp";
 import { Hero } from "@/components/marketing/Hero";
 import { Steps } from "@/components/marketing/Steps";
 import { PlatformGrid } from "@/components/platforms/PlatformGrid";
@@ -30,6 +31,8 @@ export default function HomePage() {
         <h2 className="text-center text-xl font-bold tracking-tight sm:text-2xl">How it works</h2>
         <Steps />
       </section>
+
+      <GetApp />
 
       <AdSlot />
 

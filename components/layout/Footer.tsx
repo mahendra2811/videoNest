@@ -3,6 +3,8 @@ import { Wordmark } from "@/components/brand/Wordmark";
 import { siteConfig } from "@/lib/config/site";
 
 const legalLinks = [
+  { href: "/download", label: "Get app" },
+  { href: "/blog", label: "Blog" },
   { href: "/privacy-policy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
   { href: "/contact", label: "Contact" },

@@ -11,6 +11,7 @@ import { DEFAULT_PROFILE_ID, getProfile } from "@/lib/config/profiles";
 import { optimize, probeFile } from "@/lib/engine";
 import { EngineError, INPUT_LIMITS, type OptimizeResult, type VideoMeta } from "@/lib/engine/types";
 import { uploadAndOptimize } from "@/lib/heavy/client";
+import { showLocalNotification } from "@/lib/notify/notify";
 import { useToolStore } from "@/lib/store/tool";
 import { formatDuration } from "@/lib/utils";
 import { Dropzone } from "./Dropzone";
@@ -106,6 +107,13 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
       toast.success(
         res.length > 1 ? "Your parts are ready to share." : "Your video is ready to share.",
       );
+      // If the user switched away during the encode, ping them.
+      if (typeof document !== "undefined" && document.hidden) {
+        void showLocalNotification(
+          res.length > 1 ? `Your ${res.length} parts are ready` : "Your video is ready",
+          { body: `Optimized for ${platformLabel}. Tap to download.`, tag: "vn-done", url: "/" },
+        );
+      }
     } catch (err) {
       const code = err instanceof EngineError ? err.code : "ENCODE_FAILED";
       if (code === "CANCELLED") {
@@ -191,6 +199,13 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
       setDone([result]);
       track("optimize_succeeded", { tier: "server", out_kb: Math.round(r.sizeBytes / 1024) });
       toast.success("Optimized on our server.");
+      if (typeof document !== "undefined" && document.hidden) {
+        void showLocalNotification("Your video is ready", {
+          body: `Optimized for ${platformLabel}. Tap to download.`,
+          tag: "vn-done",
+          url: "/",
+        });
+      }
     } catch (err) {
       const code = err instanceof EngineError ? err.code : "ENCODE_FAILED";
       if (code === "CANCELLED") {
@@ -205,7 +220,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     } finally {
       abortRef.current = null;
     }
-  }, [file, profileId, startProcessing, setProgress, setDone, setError]);
+  }, [file, profileId, platformLabel, startProcessing, setProgress, setDone, setError]);
 
   const handleSelect = React.useCallback(
     (f: File) => {

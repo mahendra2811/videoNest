@@ -8,7 +8,10 @@ export type AnalyticsEvent =
   | "optimize_failed"
   | "shared"
   | "downloaded"
-  | "platform_soon_clicked";
+  | "platform_soon_clicked"
+  | "app_install_prompt"
+  | "app_install_instructions"
+  | "notifications_opt_in";
 
 type Params = Record<string, string | number | boolean | undefined>;
 

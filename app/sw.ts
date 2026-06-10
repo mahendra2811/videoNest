@@ -22,3 +22,25 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// Focus an open tab (or open one) when a local notification is clicked.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const data = event.notification.data as { url?: string } | undefined;
+  const url = data?.url ?? "/";
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of clients) {
+        if ("focus" in client) {
+          await client.focus();
+          return;
+        }
+      }
+      if (self.clients.openWindow) await self.clients.openWindow(url);
+    })(),
+  );
+});
