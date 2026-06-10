@@ -111,11 +111,27 @@ content entry, create `app/<slug>/page.tsx` (two lines — `buildToolMetadata` +
 it auto-appears in the home grid (`PlatformGrid`) and `sitemap.ts`. The `/add-platform` slash
 command documents this. Keep copy honest (no "lossless").
 
+## Server heavy-tier (optional, env-gated — `app/api/heavy/`)
+
+An opt-in upload path for sources too large/long for the browser. **Dormant by default** — it
+only activates when BOTH `NEXT_PUBLIC_SERVER_TIER_ENABLED=true` AND a Vercel Blob store is linked
+(`BLOB_READ_WRITE_TOKEN`). Without those, the UI option never shows and the routes return 503, so
+the app stays 100% client-side. Flow: client uploads the source straight to Vercel Blob
+(`/api/heavy/upload` issues the token) → `/api/heavy` runs ffmpeg on it, returns the result, and
+deletes the upload. This is the **only** path where a video leaves the device, so it's always
+behind an explicit opt-in + privacy notice (`ShareActions`/`ErrorCard`/selected-state link).
+
+- ffmpeg binary: `ffmpeg-static`'s install build is **disabled** in `pnpm-workspace.yaml`
+  (`allowBuilds: { ffmpeg-static: false }`) so it never destabilizes local installs. The route
+  falls back to a system `ffmpeg` if the static binary isn't present. To actually run the tier on
+  Vercel, flip that to `true` (fetches the binary at install) or otherwise provide ffmpeg, and
+  load-test — serverless time/memory limits make true 4K/very-long jobs marginal. **Beta.**
+
 ## Do NOT build now (deferred — spec §17)
 
-Still out of scope: server heavy-tier for 4K/long sources (browser caps inputs at 10 min / 500 MB),
-auto-split of long clips into segments, cookie-consent banner, blog, native (Capacitor) wrapper,
-Hindi i18n. The profile registry + worker engine + share adapters keep these additive, not rewrites.
+Still out of scope: cookie-consent banner, Hindi i18n, and a dedicated long-form compute backend
+(Fly.io/Railway) if the Vercel heavy-tier proves too limited. The profile registry + worker engine
++ share adapters keep these additive, not rewrites.
 
 ## Layout
 

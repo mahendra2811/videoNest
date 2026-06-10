@@ -84,7 +84,7 @@ export type OutputInfo = {
 };
 
 /** Which engine path executed. */
-export type EnginePath = "webcodecs" | "ffmpeg";
+export type EnginePath = "webcodecs" | "ffmpeg" | "server";
 
 /** Progress stages surfaced to the UI. */
 export type ProgressStage = "analyzing" | "optimizing" | "finishing";

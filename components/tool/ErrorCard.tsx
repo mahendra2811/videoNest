@@ -59,12 +59,19 @@ export function ErrorCard({
   error,
   onRetry,
   onReset,
+  onHeavy,
 }: {
   error: ToolError;
   onRetry: () => void;
   onReset: () => void;
+  /** Optional server heavy-tier retry (only passed when the tier is enabled). */
+  onHeavy?: () => void;
 }) {
   const copy = ERROR_MATRIX[error.code] ?? FALLBACK;
+  // Offer the server tier for failures most likely caused by a too-heavy source.
+  const showHeavy =
+    Boolean(onHeavy) &&
+    ["OOM", "ENCODE_FAILED", "UNSUPPORTED_BROWSER", "TOO_LARGE", "TOO_LONG"].includes(error.code);
 
   return (
     <div className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-surface p-8 text-center">
@@ -86,6 +93,17 @@ export function ErrorCard({
           Choose another video
         </Button>
       </div>
+      {showHeavy && onHeavy && (
+        <div className="mt-2 flex flex-col items-center gap-1">
+          <Button variant="outline" onClick={onHeavy}>
+            Optimize on our server
+          </Button>
+          <p className="text-xs text-muted">
+            This uploads your video to our server to process it, then deletes it. Use only if
+            on-device optimization won't work.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

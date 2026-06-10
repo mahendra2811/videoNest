@@ -32,6 +32,10 @@ export const flags = {
   sentryEnabled: has("NEXT_PUBLIC_SENTRY_DSN"),
   /** Contact provider: Formspree if id present, else a mailto: fallback. */
   contactProvider: (formspreeId.length > 0 ? "formspree" : "mailto") as "formspree" | "mailto",
+  /** Optional server heavy-tier (opt-in upload for sources that crash the
+   * browser). Off unless explicitly enabled; the server route also requires a
+   * Vercel Blob token to actually run. */
+  serverTierEnabled: value("NEXT_PUBLIC_SERVER_TIER_ENABLED") === "true",
 
   // Raw ids for the few components that need them.
   gaId,

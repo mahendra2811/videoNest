@@ -6,9 +6,11 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
+import { flags } from "@/lib/config/flags";
 import { DEFAULT_PROFILE_ID, getProfile } from "@/lib/config/profiles";
 import { optimize, probeFile } from "@/lib/engine";
-import { EngineError, INPUT_LIMITS } from "@/lib/engine/types";
+import { EngineError, INPUT_LIMITS, type OptimizeResult, type VideoMeta } from "@/lib/engine/types";
+import { uploadAndOptimize } from "@/lib/heavy/client";
 import { useToolStore } from "@/lib/store/tool";
 import { formatDuration } from "@/lib/utils";
 import { Dropzone } from "./Dropzone";
@@ -119,6 +121,88 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     abortRef.current?.abort();
   }, []);
 
+  // Opt-in server heavy-tier (only when enabled). Uploads the source — the only
+  // path where a video leaves the device.
+  const handleHeavy = React.useCallback(async () => {
+    if (!file) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    startProcessing();
+    track("optimize_started", { tier: "server" });
+    try {
+      const r = await uploadAndOptimize(
+        file,
+        profileId,
+        (p) =>
+          setProgress(
+            p.stage === "uploading"
+              ? {
+                  stage: "optimizing",
+                  value: 0.02 + (p.value ?? 0) * 0.5,
+                  label: `Uploading ${Math.round((p.value ?? 0) * 100)}%`,
+                }
+              : { stage: "optimizing", value: 0.6, label: "Optimizing on our server" },
+          ),
+        controller.signal,
+      );
+      const blob = await (await fetch(r.url)).blob();
+      const meta: VideoMeta = useToolStore.getState().meta ?? {
+        container: "",
+        vcodec: "",
+        width: r.width,
+        height: r.height,
+        fps: 30,
+        durationSec: 0,
+        bitrate: 0,
+        pixfmt: "",
+        hasAudio: true,
+        rotation: 0,
+        sizeBytes: file.size,
+      };
+      const result: OptimizeResult = {
+        blob,
+        meta,
+        path: "server",
+        plan: {
+          targetWidth: r.width,
+          targetHeight: r.height,
+          blurPad: false,
+          fps: 30,
+          fastPath: false,
+          videoBitrate: 0,
+          audio: null,
+          keyFrameIntervalSec: 2,
+          effectiveDurationSec: meta.durationSec,
+          sizeCapBytes: 0,
+          notes: ["Optimized on the VideoNest server"],
+        },
+        output: {
+          width: r.width,
+          height: r.height,
+          durationSec: meta.durationSec,
+          sizeBytes: r.sizeBytes,
+          filename: r.filename,
+        },
+      };
+      setDone([result]);
+      track("optimize_succeeded", { tier: "server", out_kb: Math.round(r.sizeBytes / 1024) });
+      toast.success("Optimized on our server.");
+    } catch (err) {
+      const code = err instanceof EngineError ? err.code : "ENCODE_FAILED";
+      if (code === "CANCELLED") {
+        useToolStore.setState({ phase: "selected" });
+        return;
+      }
+      setError({
+        code,
+        message: err instanceof Error ? err.message : "Server optimization failed.",
+      });
+      track("optimize_failed", { tier: "server", code });
+    } finally {
+      abortRef.current = null;
+    }
+  }, [file, profileId, startProcessing, setProgress, setDone, setError]);
+
   const handleSelect = React.useCallback(
     (f: File) => {
       selectFile(f);
@@ -154,6 +238,16 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
                 Change video
               </Button>
             </div>
+            {flags.serverTierEnabled && (
+              <button
+                type="button"
+                onClick={handleHeavy}
+                disabled={probing}
+                className="text-center text-xs text-muted underline underline-offset-4 hover:text-foreground"
+              >
+                Heavy 4K or long clip? Optimize on our server instead (uploads your video).
+              </button>
+            )}
           </motion.div>
         )}
 
@@ -195,7 +289,12 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
 
         {phase === "error" && error && (
           <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <ErrorCard error={error} onRetry={handleOptimize} onReset={reset} />
+            <ErrorCard
+              error={error}
+              onRetry={handleOptimize}
+              onReset={reset}
+              onHeavy={flags.serverTierEnabled ? handleHeavy : undefined}
+            />
           </motion.div>
         )}
       </AnimatePresence>
