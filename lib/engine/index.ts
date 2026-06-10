@@ -17,6 +17,7 @@ export type {
   OutputInfo,
   Progress,
   ProgressStage,
+  SegmentInfo,
   VideoMeta,
 } from "./types";
 export { EngineError, INPUT_LIMITS } from "./types";
@@ -33,8 +34,8 @@ export function optimize(
   profileId: string,
   onProgress: OnProgress,
   signal?: AbortSignal,
-): Promise<OptimizeResult> {
-  return new Promise<OptimizeResult>((resolve, reject) => {
+): Promise<OptimizeResult[]> {
+  return new Promise<OptimizeResult[]>((resolve, reject) => {
     if (typeof Worker === "undefined") {
       reject(new EngineError("UNSUPPORTED_BROWSER", "Web Workers aren't available here."));
       return;
@@ -83,13 +84,7 @@ export function optimize(
       if (msg.type === "done") {
         settled = true;
         cleanup();
-        resolve({
-          blob: msg.blob,
-          meta: msg.meta,
-          output: msg.output,
-          plan: msg.plan,
-          path: msg.path,
-        });
+        resolve(msg.results);
       } else if (msg.type === "error") {
         settled = true;
         cleanup();

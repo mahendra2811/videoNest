@@ -19,6 +19,9 @@ export type PlatformProfile = {
   sizeCapMB?: number;
   bitrateStrategy: "constrained" | "overprovision";
   audio: { codec: "aac"; bitrateKbps: number };
+  /** If true, sources over maxDurationSec are split into sequential segments
+   * instead of trimmed (e.g. WhatsApp Status). */
+  splitOversize?: boolean;
   /** Device-specific "best way to share" copy. */
   shareHint: string;
   /** Short marketing blurb for the platform tile. */
@@ -53,6 +56,8 @@ export type EncodePlan = {
   fps: number;
   /** Trim to this many seconds from the start (undefined = keep full). */
   trimToSec?: number;
+  /** Explicit trim window (overrides trimToSec). Used for segment encoding. */
+  trim?: { start: number; end: number };
   /** True when the source is already optimal -> minimal re-encode. */
   fastPath: boolean;
   /** Target video bitrate in bits/sec. */
@@ -94,13 +99,23 @@ export type Progress = {
 
 export type OnProgress = (p: Progress) => void;
 
-/** Result of a full optimize() call. */
+/** When a source is split into segments, which part this result is. */
+export type SegmentInfo = {
+  index: number; // 0-based
+  total: number;
+  startSec: number;
+  endSec: number;
+};
+
+/** Result of a full optimize() call (one output file). */
 export type OptimizeResult = {
   blob: Blob;
   meta: VideoMeta;
   output: OutputInfo;
   plan: EncodePlan;
   path: EnginePath;
+  /** Present only when the source was split into multiple segments. */
+  part?: SegmentInfo;
 };
 
 /** Error codes the UI maps to friendly messages (see §10). */
@@ -137,13 +152,5 @@ export type WorkerRequest =
 export type WorkerResponse =
   | { type: "progress"; id: number; progress: Progress }
   | { type: "probed"; id: number; meta: VideoMeta }
-  | {
-      type: "done";
-      id: number;
-      blob: Blob;
-      meta: VideoMeta;
-      output: OutputInfo;
-      plan: EncodePlan;
-      path: EnginePath;
-    }
+  | { type: "done"; id: number; results: OptimizeResult[] }
   | { type: "error"; id: number; code: EngineErrorCode; message: string };

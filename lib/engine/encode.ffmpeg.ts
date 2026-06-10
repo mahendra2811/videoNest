@@ -100,7 +100,14 @@ export async function encodeFfmpeg(
 
     const gop = Math.max(2, Math.round(plan.keyFrameIntervalSec * plan.fps));
     const args: string[] = [];
-    if (plan.trimToSec) args.push("-t", String(plan.trimToSec));
+    // Trim window (segment) takes precedence over a simple head trim. `-ss`
+    // before `-i` seeks fast; `-t` bounds the segment length.
+    if (plan.trim) {
+      args.push("-ss", String(plan.trim.start));
+      args.push("-t", String(plan.trim.end - plan.trim.start));
+    } else if (plan.trimToSec) {
+      args.push("-t", String(plan.trimToSec));
+    }
     args.push("-i", inName);
     args.push("-vf", buildVideoFilter(plan));
     args.push("-r", String(plan.fps));
@@ -144,7 +151,9 @@ export async function encodeFfmpeg(
       blob,
       width: plan.targetWidth,
       height: plan.targetHeight,
-      durationSec: plan.trimToSec ?? meta.durationSec,
+      durationSec: plan.trim
+        ? plan.trim.end - plan.trim.start
+        : (plan.trimToSec ?? meta.durationSec),
     };
   } catch (err) {
     if (err instanceof EngineError) throw err;

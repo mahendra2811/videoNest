@@ -57,6 +57,11 @@ const PLATFORMS: Record<string, PlatformContent> = {
         answer:
           "No — and we won't pretend otherwise. WhatsApp always re-compresses Status videos. VideoNest prepares a clean, correctly-sized 9:16 file so WhatsApp's pass does the least possible extra damage.",
       },
+      {
+        question: "What happens to videos longer than 30 seconds?",
+        answer:
+          "WhatsApp Status caps each clip at 30 seconds. VideoNest automatically splits a longer video into sequential 30-second parts — post them back to back and your full video plays in order.",
+      },
       PRIVACY_FAQ,
       FREE_FAQ,
     ],

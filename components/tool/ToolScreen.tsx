@@ -16,6 +16,7 @@ import { ErrorCard } from "./ErrorCard";
 import { FileMeta } from "./FileMeta";
 import { Preview } from "./Preview";
 import { ProcessingRing } from "./ProcessingRing";
+import { SegmentResults } from "./SegmentResults";
 import { ShareActions } from "./ShareActions";
 
 export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: string }) {
@@ -26,9 +27,9 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     meta,
     probing,
     progress,
-    result,
+    results,
     inputUrl,
-    outputUrl,
+    outputUrls,
     error,
     selectFile,
     setMeta,
@@ -83,16 +84,22 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     try {
       const res = await optimize(file, profileId, setProgress, controller.signal);
       setDone(res);
+      const primary = res[0];
       track("optimize_succeeded", {
-        path: res.path,
-        out_kb: Math.round(res.output.sizeBytes / 1024),
+        path: primary.path,
+        parts: res.length,
+        out_kb: Math.round(primary.output.sizeBytes / 1024),
       });
-      if (res.plan.trimToSec) {
+      if (res.length > 1) {
+        toast.info(`Split into ${res.length} parts so each fits ${platformLabel}'s limit.`);
+      } else if (primary.plan.trimToSec) {
         toast.info(
-          `Trimmed to the first ${formatDuration(res.plan.trimToSec)} for ${platformLabel}.`,
+          `Trimmed to the first ${formatDuration(primary.plan.trimToSec)} for ${platformLabel}.`,
         );
       }
-      toast.success("Your video is ready to share.");
+      toast.success(
+        res.length > 1 ? "Your parts are ready to share." : "Your video is ready to share.",
+      );
     } catch (err) {
       const code = err instanceof EngineError ? err.code : "ENCODE_FAILED";
       if (code === "CANCELLED") {
@@ -156,24 +163,30 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
           </motion.div>
         )}
 
-        {phase === "done" && result && (
+        {phase === "done" && results.length > 0 && (
           <motion.div
             key="done"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-6"
           >
-            <Preview
-              inputUrl={inputUrl}
-              outputUrl={outputUrl}
-              result={result}
-              profileId={profileId}
-            />
-            <ShareActions
-              blob={result.blob}
-              filename={result.output.filename}
-              profileId={profileId}
-            />
+            {results.length === 1 ? (
+              <>
+                <Preview
+                  inputUrl={inputUrl}
+                  outputUrl={outputUrls[0]}
+                  result={results[0]}
+                  profileId={profileId}
+                />
+                <ShareActions
+                  blob={results[0].blob}
+                  filename={results[0].output.filename}
+                  profileId={profileId}
+                />
+              </>
+            ) : (
+              <SegmentResults results={results} outputUrls={outputUrls} profileId={profileId} />
+            )}
             <Button onClick={reset} variant="ghost">
               Optimize another video
             </Button>

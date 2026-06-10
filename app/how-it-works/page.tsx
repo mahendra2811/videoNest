@@ -92,7 +92,10 @@ export default function HowItWorksPage() {
           <li>
             Turn on <strong>HD</strong> in WhatsApp's media-upload settings where available.
           </li>
-          <li>Keep Status clips short — under 30 seconds avoids an automatic trim.</li>
+          <li>
+            Status caps clips at 30 seconds — longer videos are split into sequential 30s parts you
+            can post in order.
+          </li>
         </ul>
       </Prose>
 

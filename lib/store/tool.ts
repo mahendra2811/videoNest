@@ -12,8 +12,10 @@ type ToolState = {
   /** True while the selected file's metadata is still being probed. */
   probing: boolean;
   progress: Progress;
-  result: OptimizeResult | null;
-  outputUrl: string | null;
+  /** One result per output file (usually 1; >1 when split into segments). */
+  results: OptimizeResult[];
+  /** Object URLs aligned with `results`. */
+  outputUrls: string[];
   inputUrl: string | null;
   error: ToolError | null;
 
@@ -22,7 +24,7 @@ type ToolState = {
   setProbing: (probing: boolean) => void;
   startProcessing: () => void;
   setProgress: (progress: Progress) => void;
-  setDone: (result: OptimizeResult) => void;
+  setDone: (results: OptimizeResult[]) => void;
   setError: (error: ToolError) => void;
   reset: () => void;
 };
@@ -39,29 +41,33 @@ function revoke(url: string | null) {
   }
 }
 
+function revokeAll(urls: string[]) {
+  for (const u of urls) revoke(u);
+}
+
 export const useToolStore = create<ToolState>((set, get) => ({
   phase: "idle",
   file: null,
   meta: null,
   probing: false,
   progress: initialProgress,
-  result: null,
-  outputUrl: null,
+  results: [],
+  outputUrls: [],
   inputUrl: null,
   error: null,
 
   selectFile: (file) => {
-    const { inputUrl, outputUrl } = get();
+    const { inputUrl, outputUrls } = get();
     revoke(inputUrl);
-    revoke(outputUrl);
+    revokeAll(outputUrls);
     set({
       phase: "selected",
       file,
       meta: null,
       probing: true,
       progress: initialProgress,
-      result: null,
-      outputUrl: null,
+      results: [],
+      outputUrls: [],
       inputUrl: URL.createObjectURL(file),
       error: null,
     });
@@ -74,12 +80,12 @@ export const useToolStore = create<ToolState>((set, get) => ({
 
   setProgress: (progress) => set({ progress }),
 
-  setDone: (result) => {
-    revoke(get().outputUrl);
+  setDone: (results) => {
+    revokeAll(get().outputUrls);
     set({
       phase: "done",
-      result,
-      outputUrl: URL.createObjectURL(result.blob),
+      results,
+      outputUrls: results.map((r) => URL.createObjectURL(r.blob)),
       progress: { stage: "finishing", value: 1 },
     });
   },
@@ -87,17 +93,17 @@ export const useToolStore = create<ToolState>((set, get) => ({
   setError: (error) => set({ phase: "error", error }),
 
   reset: () => {
-    const { inputUrl, outputUrl } = get();
+    const { inputUrl, outputUrls } = get();
     revoke(inputUrl);
-    revoke(outputUrl);
+    revokeAll(outputUrls);
     set({
       phase: "idle",
       file: null,
       meta: null,
       probing: false,
       progress: initialProgress,
-      result: null,
-      outputUrl: null,
+      results: [],
+      outputUrls: [],
       inputUrl: null,
       error: null,
     });

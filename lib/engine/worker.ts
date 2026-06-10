@@ -40,21 +40,13 @@ self.onmessage = async (event: MessageEvent<IncomingMessage>) => {
     const post = (msg: WorkerResponse) => self.postMessage(msg);
 
     try {
-      const result = await runOptimize(
+      const results = await runOptimize(
         file,
         profileId,
         (progress) => post({ type: "progress", id, progress }),
         controller.signal,
       );
-      post({
-        type: "done",
-        id,
-        blob: result.blob,
-        meta: result.meta,
-        output: result.output,
-        plan: result.plan,
-        path: result.path,
-      });
+      post({ type: "done", id, results });
     } catch (err) {
       const code = err instanceof EngineError ? err.code : "ENCODE_FAILED";
       const message = err instanceof Error ? err.message : "Unknown error";

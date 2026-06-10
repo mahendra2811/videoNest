@@ -10,6 +10,31 @@ const ASPECT_RATIOS: Record<PlatformProfile["aspect"], number | null> = {
 /** Tolerance for "already the right aspect ratio" (absolute on w/h ratio). */
 const ASPECT_TOLERANCE = 0.02;
 
+/**
+ * Split a duration into sequential windows of at most `maxSec` each. Pure and
+ * unit-tested. A final remainder shorter than `maxSec` becomes its own segment.
+ * Returns a single full-length window when the source already fits.
+ */
+export function computeSegments(
+  durationSec: number,
+  maxSec: number,
+): { start: number; end: number }[] {
+  if (!Number.isFinite(durationSec) || durationSec <= 0 || maxSec <= 0) {
+    return [{ start: 0, end: Math.max(durationSec, 0) }];
+  }
+  if (durationSec <= maxSec + 0.05) {
+    return [{ start: 0, end: durationSec }];
+  }
+  const count = Math.ceil(durationSec / maxSec);
+  const segments: { start: number; end: number }[] = [];
+  for (let i = 0; i < count; i++) {
+    const start = i * maxSec;
+    const end = Math.min((i + 1) * maxSec, durationSec);
+    if (end - start > 0.1) segments.push({ start, end });
+  }
+  return segments;
+}
+
 /** H.264 / yuv420p requires even dimensions. */
 function roundEven(n: number): number {
   return Math.max(2, Math.round(n / 2) * 2);

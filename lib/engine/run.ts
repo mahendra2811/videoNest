@@ -2,7 +2,7 @@ import { requireProfile } from "@/lib/config/profiles";
 import { canUseWebCodecs } from "./capabilities";
 import { encodeFfmpeg } from "./encode.ffmpeg";
 import { type EncodeResult, encodeWebCodecs } from "./encode.webcodecs";
-import { buildPlan } from "./plan";
+import { buildPlan, computeSegments } from "./plan";
 import { probe } from "./probe";
 import {
   type EncodePlan,
@@ -11,6 +11,8 @@ import {
   INPUT_LIMITS,
   type OnProgress,
   type OptimizeResult,
+  type SegmentInfo,
+  type VideoMeta,
 } from "./types";
 
 function roundEven(n: number): number {
@@ -35,20 +37,61 @@ function looksLikeOom(err: unknown): boolean {
   return /memory|allocat|oom|out of memory|rangeerror/i.test(msg);
 }
 
+/** Encode one plan with the WebCodecs → OOM-retry → ffmpeg fallback chain. */
+async function encodeWithFallback(
+  file: File,
+  meta: VideoMeta,
+  plan: EncodePlan,
+  onProgress: (fraction: number) => void,
+  signal: AbortSignal | undefined,
+  wcSupported: boolean,
+): Promise<{ result: EncodeResult; plan: EncodePlan; path: EnginePath }> {
+  if (wcSupported) {
+    try {
+      const result = await encodeWebCodecs(file, meta, plan, onProgress, signal);
+      return { result, plan, path: "webcodecs" };
+    } catch (err) {
+      if (err instanceof EngineError && err.code === "CANCELLED") throw err;
+      if (looksLikeOom(err)) {
+        const reduced = reducePlan(plan);
+        try {
+          const result = await encodeWebCodecs(file, meta, reduced, onProgress, signal);
+          return { result, plan: reduced, path: "webcodecs" };
+        } catch (err2) {
+          if (err2 instanceof EngineError && err2.code === "CANCELLED") throw err2;
+        }
+      }
+      // fall through to ffmpeg
+    }
+  }
+
+  try {
+    const result = await encodeFfmpeg(file, meta, plan, onProgress, signal);
+    return { result, plan, path: "ffmpeg" };
+  } catch (err) {
+    if (err instanceof EngineError) throw err;
+    if (!wcSupported) {
+      throw new EngineError("UNSUPPORTED_BROWSER", "Your browser can't process video here.", {
+        cause: err,
+      });
+    }
+    throw new EngineError("ENCODE_FAILED", "We couldn't process this video.", { cause: err });
+  }
+}
+
 /**
  * Full pipeline: probe → plan → choose path → encode. Emits real progress.
- * Tries WebCodecs first, retries once smaller on OOM, then falls back to
- * ffmpeg.wasm. Throws a typed EngineError on failure.
+ * Returns one OptimizeResult per output file: a single result normally, or one
+ * per segment when the profile splits over-duration sources (e.g. WhatsApp).
  */
 export async function runOptimize(
   file: File,
   profileId: string,
   onProgress: OnProgress,
   signal?: AbortSignal,
-): Promise<OptimizeResult> {
+): Promise<OptimizeResult[]> {
   if (signal?.aborted) throw new EngineError("CANCELLED");
 
-  // Hard input guards (also enforced at selection).
   if (file.size > INPUT_LIMITS.maxFileBytes) {
     throw new EngineError("TOO_LARGE", "This file is larger than the 500 MB limit.");
   }
@@ -61,68 +104,76 @@ export async function runOptimize(
   }
 
   const profile = requireProfile(profileId);
-  const plan = buildPlan(meta, profile);
+  const basePlan = buildPlan(meta, profile);
   onProgress({ stage: "analyzing", value: 0.05, label: "Planning the optimization" });
 
-  const encodeProgress = (fraction: number) =>
-    onProgress({
-      stage: "optimizing",
-      value: 0.05 + Math.min(Math.max(fraction, 0), 1) * 0.9,
-      label: "Optimizing on your device",
-    });
+  const wcSupported = await canUseWebCodecs(basePlan);
 
-  const finalize = (res: EncodeResult, usedPlan: EncodePlan, path: EnginePath): OptimizeResult => {
-    onProgress({ stage: "finishing", value: 0.99, label: "Finishing up" });
+  const splitting =
+    Boolean(profile.splitOversize) && meta.durationSec > profile.maxDurationSec + 0.05;
+  const windows = splitting ? computeSegments(meta.durationSec, profile.maxDurationSec) : [null];
+  const total = windows.length;
+
+  const makeResult = (
+    res: EncodeResult,
+    usedPlan: EncodePlan,
+    path: EnginePath,
+    part?: SegmentInfo,
+  ): OptimizeResult => {
+    const filename = part
+      ? `videonest-${profile.id}-part${part.index + 1}of${part.total}.mp4`
+      : `videonest-${profile.id}.mp4`;
     return {
       blob: res.blob,
       meta,
       plan: usedPlan,
       path,
+      part,
       output: {
         width: res.width,
         height: res.height,
         durationSec: res.durationSec,
         sizeBytes: res.blob.size,
-        filename: `videonest-${profile.id}.mp4`,
+        filename,
       },
     };
   };
 
-  const wcSupported = await canUseWebCodecs(plan);
+  const results: OptimizeResult[] = [];
 
-  if (wcSupported) {
-    try {
-      const res = await encodeWebCodecs(file, meta, plan, encodeProgress, signal);
-      return finalize(res, plan, "webcodecs");
-    } catch (err) {
-      if (err instanceof EngineError && err.code === "CANCELLED") throw err;
+  for (let i = 0; i < total; i++) {
+    const window = windows[i];
 
-      // OOM → one automatic retry at a lower resolution.
-      if (looksLikeOom(err)) {
-        const reduced = reducePlan(plan);
-        try {
-          const res = await encodeWebCodecs(file, meta, reduced, encodeProgress, signal);
-          return finalize(res, reduced, "webcodecs");
-        } catch (err2) {
-          if (err2 instanceof EngineError && err2.code === "CANCELLED") throw err2;
-          // fall through to ffmpeg
-        }
-      }
-      // Any other WebCodecs failure → try the ffmpeg fallback below.
-    }
-  }
-
-  // ffmpeg.wasm fallback (also the path when WebCodecs is unsupported).
-  try {
-    const res = await encodeFfmpeg(file, meta, plan, encodeProgress, signal);
-    return finalize(res, plan, "ffmpeg");
-  } catch (err) {
-    if (err instanceof EngineError) throw err;
-    if (!wcSupported) {
-      throw new EngineError("UNSUPPORTED_BROWSER", "Your browser can't process video here.", {
-        cause: err,
+    // Per-segment progress mapped into the [0.05, 0.95] optimizing band.
+    const segmentProgress = (fraction: number) => {
+      const f = Math.min(Math.max(fraction, 0), 1);
+      const overall = 0.05 + ((i + f) / total) * 0.9;
+      onProgress({
+        stage: "optimizing",
+        value: overall,
+        label: total > 1 ? `Optimizing part ${i + 1} of ${total}` : "Optimizing on your device",
       });
+    };
+
+    let plan = basePlan;
+    let part: SegmentInfo | undefined;
+    if (window) {
+      const segDuration = window.end - window.start;
+      const segPlan = buildPlan({ ...meta, durationSec: segDuration }, profile);
+      plan = {
+        ...segPlan,
+        fastPath: false,
+        trimToSec: undefined,
+        trim: { start: window.start, end: window.end },
+        notes: [...segPlan.notes, `Segment ${i + 1} of ${total}`],
+      };
+      part = { index: i, total, startSec: window.start, endSec: window.end };
     }
-    throw new EngineError("ENCODE_FAILED", "We couldn't process this video.", { cause: err });
+
+    const enc = await encodeWithFallback(file, meta, plan, segmentProgress, signal, wcSupported);
+    results.push(makeResult(enc.result, enc.plan, enc.path, part));
   }
+
+  onProgress({ stage: "finishing", value: 0.99, label: "Finishing up" });
+  return results;
 }

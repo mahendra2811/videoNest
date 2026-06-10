@@ -24,6 +24,7 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     fpsCap: 30,
     sizeCapMB: 15,
     bitrateStrategy: "constrained",
+    splitOversize: true,
     audio: { codec: "aac", bitrateKbps: 128 },
     shareHint:
       "Tap Share to WhatsApp, then choose My Status. Quality is the same as downloading — we already optimized it.",

@@ -158,3 +158,34 @@ describe("buildPlan — overprovision bitrate strategy", () => {
     expect(plan.videoBitrate).toBeLessThan(budgetBitrate);
   });
 });
+
+import { computeSegments } from "@/lib/engine/plan";
+
+describe("computeSegments", () => {
+  it("returns one full window when within the cap", () => {
+    expect(computeSegments(25, 30)).toEqual([{ start: 0, end: 25 }]);
+  });
+
+  it("splits a 70s clip into 30/30/10 windows", () => {
+    expect(computeSegments(70, 30)).toEqual([
+      { start: 0, end: 30 },
+      { start: 30, end: 60 },
+      { start: 60, end: 70 },
+    ]);
+  });
+
+  it("splits an exact multiple cleanly", () => {
+    expect(computeSegments(60, 30)).toEqual([
+      { start: 0, end: 30 },
+      { start: 30, end: 60 },
+    ]);
+  });
+
+  it("handles a value just over the cap (tolerance)", () => {
+    expect(computeSegments(30.02, 30)).toEqual([{ start: 0, end: 30.02 }]);
+  });
+
+  it("guards invalid input", () => {
+    expect(computeSegments(0, 30)).toEqual([{ start: 0, end: 0 }]);
+  });
+});

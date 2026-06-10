@@ -141,7 +141,8 @@ export async function encodeWebCodecs(
     : { discard: true };
 
   const opts: any = { input, output, video, audio };
-  if (plan.trimToSec) opts.trim = { start: 0, end: plan.trimToSec };
+  if (plan.trim) opts.trim = { start: plan.trim.start, end: plan.trim.end };
+  else if (plan.trimToSec) opts.trim = { start: 0, end: plan.trimToSec };
 
   let conversion: Conversion;
   try {
@@ -189,11 +190,15 @@ export async function encodeWebCodecs(
     throw new EngineError("ENCODE_FAILED", "The encoder produced an empty file.");
   }
 
+  const durationSec = plan.trim
+    ? plan.trim.end - plan.trim.start
+    : (plan.trimToSec ?? meta.durationSec);
+
   return {
     blob: new Blob([buffer], { type: "video/mp4" }),
     width: outW,
     height: outH,
-    durationSec: plan.trimToSec ?? meta.durationSec,
+    durationSec,
   };
 }
 
