@@ -9,6 +9,10 @@ export type PlatformProfile = {
   status: "live" | "soon";
   /** Route slug for this platform's tool page (e.g. "instagram-reels-video"). */
   slug: string;
+  /** Brand family, used to group platforms on the home grid. */
+  brand: "whatsapp" | "instagram" | "youtube" | "facebook";
+  /** Short format label within the brand (e.g. "Status", "Reels", "Shorts"). */
+  format: string;
   /** lucide-react icon name (resolved in the UI). */
   icon: string;
   aspect: "9:16" | "16:9" | "source";

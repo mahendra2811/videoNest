@@ -71,10 +71,14 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
       });
   }, [phase, file, setMeta, setProbing, reset]);
 
-  // Cleanup any in-flight worker on unmount.
+  // On unmount (navigating away), abort any in-flight job and clear state so a
+  // stale result/video doesn't linger when the user returns to the tool.
   React.useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
+    return () => {
+      abortRef.current?.abort();
+      reset();
+    };
+  }, [reset]);
 
   const handleOptimize = React.useCallback(async () => {
     if (!file) return;

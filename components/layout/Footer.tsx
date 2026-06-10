@@ -33,7 +33,7 @@ export function Footer() {
             ))}
           </nav>
           <p className="text-xs text-muted">
-            © {year} {siteConfig.name}. Made for sharper Status videos.
+            © {year} {siteConfig.name}. Made for sharper social videos.
           </p>
         </div>
       </div>

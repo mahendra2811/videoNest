@@ -1,41 +1,53 @@
-import { Share2, Sparkles, Upload } from "lucide-react";
+"use client";
 
-const STEPS = [
+import type { LucideIcon } from "lucide-react";
+import { Share2, Sparkles, Upload } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Upload,
     title: "Pick a video",
-    body: "Drop in any clip — MP4, MOV, WebM and more.",
+    body: "Drop in any clip — MP4, MOV, WebM, MKV and more. Nothing uploads; it's read straight from your device.",
   },
   {
     icon: Sparkles,
     title: "We optimize it on your device",
-    body: "Re-encoded right in your browser. Nothing is uploaded.",
+    body: "VideoNest re-encodes it right in your browser into the cleanest file for your chosen platform — correct size, aspect and bitrate. Your video never leaves your device.",
   },
   {
     icon: Share2,
     title: "Share or download",
-    body: "Post straight to the app, or save the optimized file.",
+    body: "Post it straight to the app, or download the optimized file. WhatsApp clips over 30s are split into parts you can post in order.",
   },
 ];
 
 export function Steps() {
   return (
-    <ol className="grid gap-4 sm:grid-cols-3">
-      {STEPS.map((step, i) => (
-        <li
-          key={step.title}
-          className="flex flex-col gap-3 rounded-3xl border border-border bg-surface p-6"
-        >
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sunset font-mono text-sm font-bold text-white">
-              {i + 1}
-            </span>
-            <step.icon className="h-5 w-5 text-brand-via" />
-          </div>
-          <h3 className="font-bold tracking-tight">{step.title}</h3>
-          <p className="text-sm text-muted">{step.body}</p>
-        </li>
-      ))}
-    </ol>
+    <div className="mx-auto w-full max-w-2xl">
+      <Accordion type="single" collapsible defaultValue="step-0" className="w-full">
+        {STEPS.map((step, i) => (
+          <AccordionItem key={step.title} value={`step-${i}`}>
+            <AccordionTrigger>
+              <span className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sunset font-mono text-xs font-bold text-white">
+                  {i + 1}
+                </span>
+                <step.icon className="h-4 w-4 shrink-0 text-brand-via" />
+                <span className="text-sm font-semibold sm:text-base">{step.title}</span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <span className="block pl-11">{step.body}</span>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </div>
   );
 }

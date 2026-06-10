@@ -17,8 +17,8 @@ export const siteConfig = {
   url: siteUrl,
   contactEmail: env("NEXT_PUBLIC_CONTACT_EMAIL", "mahendrapuniya92@gmail.com"),
   description:
-    "Post videos to WhatsApp Status and keep them sharp. VideoNest prepares your video on your device so it stays crisp after WhatsApp compresses it. Free, private, no upload.",
-  tagline: "Post videos to WhatsApp Status — and keep them sharp.",
+    "Social media blurs your videos. VideoNest optimizes them on your device for WhatsApp, Instagram, YouTube and Facebook so they stay sharp after the platform compresses them. Free, private, no upload.",
+  tagline: "Stop social media from blurring your videos",
   twitterHandle: "@videonest",
   locale: "en_US",
 } as const;
