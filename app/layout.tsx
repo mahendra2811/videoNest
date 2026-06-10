@@ -1,0 +1,96 @@
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
+import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "sonner";
+import { Analytics } from "@/components/analytics/Analytics";
+import { AppSplash } from "@/components/layout/AppSplash";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { flags } from "@/lib/config/flags";
+import { siteConfig } from "@/lib/config/site";
+import { buildMetadata } from "@/lib/seo/metadata";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
+  applicationName: siteConfig.name,
+  ...buildMetadata(),
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: siteConfig.name,
+  },
+  ...(flags.gscVerification ? { verification: { google: flags.gscVerification } } : {}),
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFF9F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#15100F" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col">
+        <ThemeProvider>
+          <NextTopLoader
+            color="#FF5E78"
+            shadow="0 0 10px #FF5E78,0 0 5px #FF2E93"
+            height={3}
+            showSpinner={false}
+          />
+          <AppSplash />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <Toaster position="top-center" richColors closeButton />
+        </ThemeProvider>
+
+        <Analytics />
+
+        {/* AdSense loader — only when ads are enabled. */}
+        {flags.adsEnabled && (
+          <Script
+            id="adsbygoogle-init"
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${flags.adsClientId}`}
+          />
+        )}
+      </body>
+    </html>
+  );
+}

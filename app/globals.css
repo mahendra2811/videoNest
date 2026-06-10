@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* Class-based dark mode driven by next-themes (adds .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------------------
+   Design tokens (VideoNest — sunset brand, warm light theme primary)
+---------------------------------------------------------------------------- */
+:root {
+  --background: #fff9f5;
+  --surface: #ffffff;
+  --surface-2: #fff4ec;
+  --foreground: #1a1416;
+  --muted: #6b5b60;
+  --border: #f0e4de;
+
+  --brand-from: #ff8c42;
+  --brand-via: #ff5e78;
+  --brand-to: #ff2e93;
+  --ring: #ff5e78;
+
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #15100f;
+  --surface: #1f1816;
+  --surface-2: #261d1b;
+  --foreground: #fbede7;
+  --muted: #b69a90;
+  --border: #2e2422;
+
+  --brand-from: #ff8c42;
+  --brand-via: #ff5e78;
+  --brand-to: #ff2e93;
+  --ring: #ff5e78;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+
+  --color-brand-from: var(--brand-from);
+  --color-brand-via: var(--brand-via);
+  --color-brand-to: var(--brand-to);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
+
+/* ----------------------------------------------------------------------------
+   Base
+---------------------------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible, on-brand focus ring */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Brand utilities — the sunset gradient
+---------------------------------------------------------------------------- */
+@layer utilities {
+  .bg-sunset {
+    background-image: linear-gradient(
+      135deg,
+      var(--brand-from),
+      var(--brand-via),
+      var(--brand-to)
+    );
+  }
+
+  .text-sunset {
+    background-image: linear-gradient(
+      135deg,
+      var(--brand-from),
+      var(--brand-via),
+      var(--brand-to)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .shadow-warm {
+    box-shadow:
+      0 1px 2px rgba(255, 94, 120, 0.04),
+      0 8px 24px rgba(255, 94, 120, 0.08);
+  }
+
+  .shadow-warm-lg {
+    box-shadow:
+      0 2px 8px rgba(255, 94, 120, 0.06),
+      0 20px 48px rgba(255, 94, 120, 0.12);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Keyframes (accordion, shimmer)
+---------------------------------------------------------------------------- */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes sunset-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Reduced motion
+---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
