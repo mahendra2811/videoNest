@@ -167,6 +167,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
         pixfmt: "",
         hasAudio: true,
         rotation: 0,
+        isHdr: false,
         sizeBytes: file.size,
       };
       const result: OptimizeResult = {

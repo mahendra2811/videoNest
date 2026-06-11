@@ -58,6 +58,8 @@ export type VideoMeta = {
   hasAudio: boolean;
   /** Rotation in degrees clockwise (0/90/180/270). */
   rotation: number;
+  /** True when the source is High Dynamic Range (BT.2020/PQ/HLG). */
+  isHdr: boolean;
   sizeBytes: number;
 };
 

@@ -18,6 +18,7 @@ function meta(overrides: Partial<VideoMeta> = {}): VideoMeta {
     pixfmt: "yuv420p",
     hasAudio: true,
     rotation: 0,
+    isHdr: false,
     sizeBytes: 10 * 1024 * 1024,
     ...overrides,
   };
@@ -108,6 +109,11 @@ describe("buildPlan — WhatsApp Status profile", () => {
 
   it("oversized file but otherwise optimal → re-encode (not fast path)", () => {
     const plan = buildPlan(meta({ sizeBytes: 40 * 1024 * 1024 }), whatsapp);
+    expect(plan.fastPath).toBe(false);
+  });
+
+  it("HDR source is never fast-pathed (must tone-map to SDR)", () => {
+    const plan = buildPlan(meta({ isHdr: true }), whatsapp);
     expect(plan.fastPath).toBe(false);
   });
 });

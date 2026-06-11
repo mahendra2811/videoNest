@@ -144,6 +144,7 @@ export function buildPlan(meta: VideoMeta, profile: PlatformProfile): EncodePlan
   const fastPath =
     isH264(meta.vcodec) &&
     isYuv420(meta.pixfmt) &&
+    !meta.isHdr && // HDR must be tone-mapped to SDR, never remuxed
     fitsBox &&
     fpsOk &&
     aspectOk &&

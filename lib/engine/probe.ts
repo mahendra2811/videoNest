@@ -40,6 +40,9 @@ export async function probe(file: File): Promise<VideoMeta> {
     const audioTrack = await input.getPrimaryAudioTrack().catch(() => null);
     const hasAudio = Boolean(audioTrack);
 
+    // HDR detection (BT.2020/PQ/HLG) — these need tone-mapping to SDR.
+    const isHdr = await safe(() => videoTrack.hasHighDynamicRange(), false);
+
     const sizeBytes = file.size;
     const bitrate = durationSec > 0 ? Math.round((sizeBytes * 8) / durationSec) : 0;
 
@@ -56,6 +59,7 @@ export async function probe(file: File): Promise<VideoMeta> {
       pixfmt: "",
       hasAudio,
       rotation: normalizeRotation(rotation),
+      isHdr,
       sizeBytes,
     };
   } catch (err) {

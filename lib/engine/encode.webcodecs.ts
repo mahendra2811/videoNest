@@ -75,6 +75,25 @@ function makeBlurPadProcess(outW: number, outH: number) {
 }
 
 /**
+ * Plain scale-to-fill compositor. Used for HDR sources on the non-pad path:
+ * drawing an HDR VideoFrame onto a 2D (SDR) canvas makes the browser tone-map it
+ * to SDR, which is far better than a naive 10-bit→8-bit conversion.
+ */
+function makeScaleProcess(outW: number, outH: number) {
+  let canvas: OffscreenCanvas | null = null;
+  let ctx: OffscreenCanvasRenderingContext2D | null = null;
+
+  return (sample: VideoSample): OffscreenCanvas => {
+    if (!canvas || !ctx) {
+      canvas = new OffscreenCanvas(outW, outH);
+      ctx = canvas.getContext("2d", { alpha: false }) as OffscreenCanvasRenderingContext2D;
+    }
+    sample.draw(ctx, 0, 0, outW, outH);
+    return canvas;
+  };
+}
+
+/**
  * Primary encoder: demux + decode + (scale/pad) + encode H.264 + mux to a
  * faststart MP4, all on-device via Mediabunny + WebCodecs.
  */
@@ -119,9 +138,6 @@ export async function encodeWebCodecs(
     outW = plan.targetWidth;
     outH = plan.targetHeight;
     video = {
-      width: outW,
-      height: outH,
-      fit: "fill",
       codec: "avc",
       bitrate: plan.videoBitrate,
       keyFrameInterval: plan.keyFrameIntervalSec,
@@ -130,6 +146,16 @@ export async function encodeWebCodecs(
       // social platforms don't reliably honor rotation metadata on re-encode.
       allowRotationMetadata: false,
     };
+    if (meta.isHdr) {
+      // Tone-map HDR → SDR by compositing through a 2D canvas.
+      video.process = makeScaleProcess(outW, outH);
+      video.processedWidth = outW;
+      video.processedHeight = outH;
+    } else {
+      video.width = outW;
+      video.height = outH;
+      video.fit = "fill";
+    }
     video.frameRate = plan.fps; // force constant frame rate (platforms expect CFR)
   }
 
