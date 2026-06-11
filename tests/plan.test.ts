@@ -145,17 +145,30 @@ describe("buildPlan — 16:9 profile (YouTube)", () => {
 });
 
 describe("buildPlan — overprovision bitrate strategy", () => {
-  it("uses a high quality-first bitrate within the clamp range", () => {
+  const ytShorts = getProfile("youtube-shorts");
+  if (!ytShorts) throw new Error("youtube-shorts profile missing");
+
+  it("uses a high quality-first bitrate (≈ perPixel) within the clamp range", () => {
+    // 1080×1920·30 × 0.16 ≈ 9.95 Mbps for Instagram Reels.
     const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 30 }), igReels);
-    expect(plan.videoBitrate).toBeGreaterThanOrEqual(4_000_000);
-    expect(plan.videoBitrate).toBeLessThanOrEqual(20_000_000);
+    expect(plan.videoBitrate).toBeGreaterThanOrEqual(8_000_000);
+    expect(plan.videoBitrate).toBeLessThanOrEqual(12_000_000);
   });
 
-  it("respects the platform size cap for long clips", () => {
-    // 100 MB over 90s ≈ 9.3 Mbps total; video must stay under that budget.
-    const plan = buildPlan(meta({ width: 1920, height: 1080, durationSec: 90 }), igReels);
-    const budgetBitrate = (100 * 1024 * 1024 * 8) / 90;
-    expect(plan.videoBitrate).toBeLessThan(budgetBitrate);
+  it("clamps to the profile bitrate ceiling for very high pixel rates", () => {
+    // 1080×1920·60 × 0.20 ≈ 24.9 Mbps → clamped to the 20 Mbps default ceiling.
+    const plan = buildPlan(meta({ width: 1080, height: 1920, fps: 60, durationSec: 30 }), ytShorts);
+    expect(plan.videoBitrate).toBe(20_000_000);
+  });
+
+  it("respects a stated size cap when it binds (constrained budget)", () => {
+    // Force a tight budget: a small synthetic cap profile via Instagram Story
+    // with a long effective duration is capped to maxDuration, so instead
+    // verify the cap math directly on a binding case.
+    const tight = { ...igReels, sizeCapMB: 20, maxDurationSec: 30 };
+    const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 30 }), tight);
+    const budgetBitrate = (20 * 1024 * 1024 * 8 * 0.92) / 30;
+    expect(plan.videoBitrate).toBeLessThanOrEqual(Math.round(budgetBitrate));
   });
 });
 

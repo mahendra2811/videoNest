@@ -7,8 +7,11 @@ import type { PlatformProfile } from "@/lib/engine/types";
  * live here.
  *
  * WhatsApp Status uses the constrained (hard size-cap) strategy; the others use
- * `overprovision` (high quality, capped by the platform's own size limit when
- * one is stated). All processing stays 100% on-device.
+ * `overprovision` — a quality-first bitrate (the platform re-encodes anyway, so
+ * we hand it clean, generously-bitrated input), capped by any stated size limit.
+ *
+ * `lastVerified` / `sourceUrl` / `confidence` exist so specs don't silently
+ * drift — re-verify periodically against the source.
  */
 export const PLATFORM_PROFILES: PlatformProfile[] = [
   {
@@ -24,13 +27,16 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     maxHeight: 1920,
     maxDurationSec: 30,
     fpsCap: 30,
-    sizeCapMB: 15,
+    sizeCapMB: 16,
     bitrateStrategy: "constrained",
     splitOversize: true,
     audio: { codec: "aac", bitrateKbps: 128 },
     shareHint:
       "Tap Share to WhatsApp, then choose My Status. Quality is the same as downloading — we already optimized it.",
     blurb: "Stay sharp after WhatsApp's squeeze.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://faq.whatsapp.com/454876960047011",
+    confidence: "medium",
   },
   {
     id: "instagram-reels",
@@ -45,11 +51,15 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     maxHeight: 1920,
     maxDurationSec: 90,
     fpsCap: 30,
-    sizeCapMB: 100,
+    sizeCapMB: 250,
     bitrateStrategy: "overprovision",
+    bitratePerPixel: 0.16, // ~10 Mbps @1080×1920·30
     audio: { codec: "aac", bitrateKbps: 128 },
     shareHint: "Tap Share, then post the saved video as a Reel from the Instagram app.",
     blurb: "Vertical reels, ready to post.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://help.instagram.com/1038071743007909",
+    confidence: "medium",
   },
   {
     id: "instagram-story",
@@ -64,11 +74,15 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     maxHeight: 1920,
     maxDurationSec: 60,
     fpsCap: 30,
-    sizeCapMB: 100,
+    sizeCapMB: 250,
     bitrateStrategy: "overprovision",
+    bitratePerPixel: 0.16,
     audio: { codec: "aac", bitrateKbps: 128 },
     shareHint: "Tap Share, then add the saved video to your Story from the Instagram app.",
     blurb: "Crisp 9:16 stories.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://help.instagram.com/1257341144298972",
+    confidence: "medium",
   },
   {
     id: "youtube-shorts",
@@ -81,13 +95,18 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     aspect: "9:16",
     maxWidth: 1080,
     maxHeight: 1920,
-    maxDurationSec: 60,
+    maxDurationSec: 180, // 3 min since Oct 15 2024
     fpsCap: 60,
-    sizeCapMB: 256,
+    sizeCapMB: 0,
     bitrateStrategy: "overprovision",
-    audio: { codec: "aac", bitrateKbps: 192 },
+    bitratePerPixel: 0.2, // YouTube rewards a high-bitrate source
+    gopSec: 1,
+    audio: { codec: "aac", bitrateKbps: 256 },
     shareHint: "Download, then upload it as a Short from the YouTube app.",
     blurb: "Short-form, high bitrate.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://support.google.com/youtube/answer/15424877",
+    confidence: "high",
   },
   {
     id: "youtube-long",
@@ -104,9 +123,15 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     fpsCap: 60,
     sizeCapMB: 0,
     bitrateStrategy: "overprovision",
-    audio: { codec: "aac", bitrateKbps: 256 },
+    bitratePerPixel: 0.22, // ~13 Mbps @1080p·30; YouTube bitrates are floors
+    maxBitrate: 30_000_000,
+    gopSec: 1,
+    audio: { codec: "aac", bitrateKbps: 384 },
     shareHint: "Download, then upload it to YouTube from your computer or the app.",
     blurb: "Landscape, high-bitrate uploads.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://support.google.com/youtube/answer/1722171",
+    confidence: "high",
   },
   {
     id: "facebook-video",
@@ -123,9 +148,13 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     fpsCap: 30,
     sizeCapMB: 0,
     bitrateStrategy: "overprovision",
+    bitratePerPixel: 0.18,
     audio: { codec: "aac", bitrateKbps: 192 },
     shareHint: "Download, then post it to your feed from the Facebook app.",
     blurb: "Landscape video for the feed.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://www.facebook.com/business/help/980593475366490",
+    confidence: "medium",
   },
   {
     id: "facebook-story",
@@ -140,11 +169,15 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     maxHeight: 1920,
     maxDurationSec: 60,
     fpsCap: 30,
-    sizeCapMB: 100,
+    sizeCapMB: 250,
     bitrateStrategy: "overprovision",
+    bitratePerPixel: 0.16,
     audio: { codec: "aac", bitrateKbps: 128 },
     shareHint: "Tap Share, then add the saved video to your Story from the Facebook app.",
     blurb: "Vertical stories for Facebook.",
+    lastVerified: "2026-06",
+    sourceUrl: "https://www.facebook.com/business/help/980593475366490",
+    confidence: "low",
   },
 ];
 

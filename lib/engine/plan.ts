@@ -124,9 +124,10 @@ export function buildPlan(meta: VideoMeta, profile: PlatformProfile): EncodePlan
     // Overprovision: aim for a high, quality-first target scaled by pixel rate,
     // then clamp to a sane range. If the platform states a size cap, never
     // exceed the budget it implies for this (possibly trimmed) duration.
-    const perPixel = 0.1;
+    const perPixel = profile.bitratePerPixel ?? 0.13;
+    const ceiling = profile.maxBitrate ?? 20_000_000;
     let raw = targetWidth * targetHeight * fps * perPixel;
-    raw = Math.min(Math.max(raw, 4_000_000), 20_000_000);
+    raw = Math.min(Math.max(raw, 4_000_000), ceiling);
     if (sizeCapBytes > 0) {
       const budget = (sizeCapBytes * 8 * 0.92) / effectiveDurationSec - audioBitrate;
       if (budget > 800_000) raw = Math.min(raw, budget);
@@ -155,6 +156,8 @@ export function buildPlan(meta: VideoMeta, profile: PlatformProfile): EncodePlan
     ? { codec: "aac" as const, bitrate: profile.audio.bitrateKbps * 1000, sampleRate: 48_000 }
     : null;
 
+  const keyFrameIntervalSec = profile.gopSec ?? 2;
+
   return {
     targetWidth,
     targetHeight,
@@ -164,7 +167,7 @@ export function buildPlan(meta: VideoMeta, profile: PlatformProfile): EncodePlan
     fastPath,
     videoBitrate,
     audio,
-    keyFrameIntervalSec: 2,
+    keyFrameIntervalSec,
     effectiveDurationSec,
     sizeCapBytes,
     notes,

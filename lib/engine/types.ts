@@ -26,10 +26,22 @@ export type PlatformProfile = {
   /** If true, sources over maxDurationSec are split into sequential segments
    * instead of trimmed (e.g. WhatsApp Status). */
   splitOversize?: boolean;
+  /** Overprovision video bitrate per (w*h*fps). Higher = more bits for the
+   * platform's re-encode to preserve. Ignored for the constrained strategy.
+   * Defaults to 0.13. */
+  bitratePerPixel?: number;
+  /** Upper clamp for the overprovision bitrate (bits/s). Defaults to 20 Mbps. */
+  maxBitrate?: number;
+  /** Keyframe interval in seconds (closed GOP). Defaults to 2. YouTube prefers ~1. */
+  gopSec?: number;
   /** Device-specific "best way to share" copy. */
   shareHint: string;
   /** Short marketing blurb for the platform tile. */
   blurb?: string;
+  /** Spec provenance, so profiles don't silently drift. */
+  lastVerified?: string;
+  sourceUrl?: string;
+  confidence?: "high" | "medium" | "low";
 };
 
 /** Metadata probed from the source file. */
