@@ -118,20 +118,27 @@ if (!igReels) throw new Error("instagram-reels profile missing");
 if (!ytLong) throw new Error("youtube-long profile missing");
 
 describe("buildPlan — 16:9 profile (YouTube)", () => {
-  it("4K landscape → downscaled to 1920×1080, no pad", () => {
+  it("4K landscape → downscaled to 1440p box (passthrough up to 1440p), no pad", () => {
     const plan = buildPlan(meta({ width: 3840, height: 2160, durationSec: 120, fps: 30 }), ytLong);
     expect(plan.blurPad).toBe(false);
-    expect(plan.targetWidth).toBe(1920);
-    expect(plan.targetHeight).toBe(1080);
+    expect(plan.targetWidth).toBe(2560);
+    expect(plan.targetHeight).toBe(1440);
     expect(plan.targetWidth % 2).toBe(0);
     expect(plan.targetHeight % 2).toBe(0);
   });
 
-  it("vertical source → blurred pad to 16:9 (1920×1080)", () => {
-    const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 120 }), ytLong);
-    expect(plan.blurPad).toBe(true);
+  it("1080p landscape → kept (not upscaled to 1440p)", () => {
+    const plan = buildPlan(meta({ width: 1920, height: 1080, durationSec: 120, fps: 30 }), ytLong);
+    expect(plan.blurPad).toBe(false);
     expect(plan.targetWidth).toBe(1920);
     expect(plan.targetHeight).toBe(1080);
+  });
+
+  it("vertical source → blurred pad to 16:9 (1440p box)", () => {
+    const plan = buildPlan(meta({ width: 1080, height: 1920, durationSec: 120 }), ytLong);
+    expect(plan.blurPad).toBe(true);
+    expect(plan.targetWidth).toBe(2560);
+    expect(plan.targetHeight).toBe(1440);
   });
 
   it("16:9 source already optimal → fast path", () => {

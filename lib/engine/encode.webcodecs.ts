@@ -98,7 +98,6 @@ export async function encodeWebCodecs(
   let outH = meta.height || plan.targetHeight;
 
   let video: any;
-  const capFps = meta.fps > 0 && meta.fps > plan.fps + 0.1;
 
   if (plan.fastPath) {
     // Remux / minimal re-encode: copy the compatible H.264 track when possible.
@@ -115,7 +114,7 @@ export async function encodeWebCodecs(
       processedHeight: outH,
       process: makeBlurPadProcess(outW, outH),
     };
-    if (capFps) video.frameRate = plan.fps;
+    video.frameRate = plan.fps; // force constant frame rate (platforms expect CFR)
   } else {
     outW = plan.targetWidth;
     outH = plan.targetHeight;
@@ -127,8 +126,11 @@ export async function encodeWebCodecs(
       bitrate: plan.videoBitrate,
       keyFrameInterval: plan.keyFrameIntervalSec,
       forceTranscode: true,
+      // Bake source rotation into pixels rather than emitting a rotation flag —
+      // social platforms don't reliably honor rotation metadata on re-encode.
+      allowRotationMetadata: false,
     };
-    if (capFps) video.frameRate = plan.fps;
+    video.frameRate = plan.fps; // force constant frame rate (platforms expect CFR)
   }
 
   const audio: any = plan.audio

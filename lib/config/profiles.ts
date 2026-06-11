@@ -93,8 +93,11 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     format: "Shorts",
     icon: "Clapperboard",
     aspect: "9:16",
-    maxWidth: 1080,
-    maxHeight: 1920,
+    // Allow up to 1440p passthrough — YouTube's transcode rewards >1080p
+    // sources (better VP9/AV1 ladder). Downscale-only, so smaller sources are
+    // untouched and nothing is upscaled.
+    maxWidth: 1440,
+    maxHeight: 2560,
     maxDurationSec: 180, // 3 min since Oct 15 2024
     fpsCap: 60,
     sizeCapMB: 0,
@@ -117,8 +120,10 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     format: "Long",
     icon: "Clapperboard",
     aspect: "16:9",
-    maxWidth: 1920,
-    maxHeight: 1080,
+    // Allow up to 1440p passthrough (downscale-only); YouTube's re-encode
+    // rewards >1080p sources. 4K sources land at 1440p to stay browser-feasible.
+    maxWidth: 2560,
+    maxHeight: 1440,
     maxDurationSec: 60 * 10,
     fpsCap: 60,
     sizeCapMB: 0,
