@@ -8,11 +8,18 @@ import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { flags } from "@/lib/config/flags";
 import { DEFAULT_PROFILE_ID, requireProfile } from "@/lib/config/profiles";
-import { type EditState, editStateToOptions, hasEdits, initialEditState } from "@/lib/edit/state";
+import {
+  type EditState,
+  editStateToOptions,
+  editStateWithRemembered,
+  hasEdits,
+  rememberedFromEditState,
+} from "@/lib/edit/state";
 import { optimize, probeFile } from "@/lib/engine";
 import { EngineError, INPUT_LIMITS, type OptimizeResult, type VideoMeta } from "@/lib/engine/types";
 import { uploadAndOptimize } from "@/lib/heavy/client";
 import { showLocalNotification } from "@/lib/notify/notify";
+import { useFavouritesStore } from "@/lib/store/favourites";
 import { useToolStore } from "@/lib/store/tool";
 import { formatDuration } from "@/lib/utils";
 import { CompareOnStatus } from "./CompareOnStatus";
@@ -47,7 +54,9 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     reset,
   } = useToolStore();
 
-  const [editState, setEditState] = React.useState<EditState>(initialEditState);
+  const [editState, setEditState] = React.useState<EditState>(() =>
+    editStateWithRemembered(useFavouritesStore.getState().lastOptions),
+  );
   const [editing, setEditing] = React.useState(false);
   const edited = hasEdits(editState, profile);
 
@@ -99,6 +108,9 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
       const options = editStateToOptions(editState, profile);
       const res = await optimize(file, profileId, setProgress, controller.signal, options);
       setDone(res);
+      // Remember this platform + the scalar options for next time (E1/E3).
+      useFavouritesStore.getState().recordUse(profileId);
+      useFavouritesStore.getState().setLastOptions(rememberedFromEditState(editState));
       const primary = res[0];
       track("optimize_succeeded", {
         path: primary.path,
@@ -153,7 +165,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
   }, []);
 
   const resetAll = React.useCallback(() => {
-    setEditState(initialEditState());
+    setEditState(editStateWithRemembered(useFavouritesStore.getState().lastOptions));
     setEditing(false);
     reset();
   }, [reset]);
@@ -256,7 +268,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
 
   const handleSelect = React.useCallback(
     (f: File) => {
-      setEditState(initialEditState());
+      setEditState(editStateWithRemembered(useFavouritesStore.getState().lastOptions));
       setEditing(false);
       selectFile(f);
       track("file_selected", { size_kb: Math.round(f.size / 1024) });

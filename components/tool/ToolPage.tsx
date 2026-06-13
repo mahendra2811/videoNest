@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { FavouriteButton } from "@/components/tool/FavouriteButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { Card } from "@/components/ui/card";
 import { lastVerifiedLabel, requireProfile } from "@/lib/config/profiles";
@@ -37,6 +38,9 @@ export function ToolPage({ profileId }: { profileId: string }) {
         <p className="max-w-xs text-sm text-muted">
           Drop your video in and we'll make it look its best after you post.
         </p>
+        <div className="mt-1">
+          <FavouriteButton profileId={profile.id} label={profile.label} />
+        </div>
       </header>
 
       <Card className="p-4 sm:p-6">

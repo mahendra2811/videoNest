@@ -4,6 +4,7 @@ import { GetApp } from "@/components/marketing/GetApp";
 import { Hero } from "@/components/marketing/Hero";
 import { Steps } from "@/components/marketing/Steps";
 import { PlatformGrid } from "@/components/platforms/PlatformGrid";
+import { QuickAccess } from "@/components/platforms/QuickAccess";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { FAQ_ITEMS } from "@/lib/content/faq";
 import { faqJsonLd, organizationJsonLd, webApplicationJsonLd } from "@/lib/seo/jsonld";
@@ -16,6 +17,8 @@ export default function HomePage() {
       <JsonLd data={faqJsonLd(FAQ_ITEMS)} />
 
       <Hero />
+
+      <QuickAccess />
 
       <section className="flex flex-col gap-5">
         <div className="text-center">

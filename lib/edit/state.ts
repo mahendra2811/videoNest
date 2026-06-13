@@ -44,6 +44,28 @@ export function initialEditState(): EditState {
   };
 }
 
+/** Scalar options we persist and pre-apply on the next visit (E3). */
+export type RememberedEditOptions = Pick<
+  EditState,
+  "sharpen" | "normalizeLoudness" | "aspectMode" | "youtubeQuality" | "videoCodec"
+>;
+
+/** A fresh edit state seeded with the user's remembered scalar options (E3). */
+export function editStateWithRemembered(remembered: RememberedEditOptions): EditState {
+  return { ...initialEditState(), ...remembered };
+}
+
+/** Extract the persistable scalar options from the current edit state. */
+export function rememberedFromEditState(s: EditState): RememberedEditOptions {
+  return {
+    sharpen: s.sharpen,
+    normalizeLoudness: s.normalizeLoudness,
+    aspectMode: s.aspectMode,
+    youtubeQuality: s.youtubeQuality,
+    videoCodec: s.videoCodec,
+  };
+}
+
 /** A reasonable default text layer (centred, legible). */
 export function makeTextLayer(text = "Your text"): TextLayer {
   return {
