@@ -8,6 +8,7 @@ import { track } from "@/lib/analytics";
 import { siteConfig } from "@/lib/config/site";
 import { getPlatformContent } from "@/lib/content/platforms";
 import { type DeviceShareMode, downloadBlob, getShareMode, shareFile } from "@/lib/share/share";
+import { strings } from "@/lib/strings";
 
 export function ShareActions({
   blob,
@@ -76,6 +77,9 @@ export function ShareActions({
         </Button>
       </div>
       <p className="text-center text-sm text-muted">{hint}</p>
+      {profileId.startsWith("whatsapp") && (
+        <p className="text-center text-xs text-muted/80">{strings.share.whatsappHd}</p>
+      )}
     </div>
   );
 }

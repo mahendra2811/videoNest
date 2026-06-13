@@ -199,13 +199,13 @@ export function buildPlan(
       if (budget > 800_000) videoBitrate = Math.min(videoBitrate, Math.round(budget));
     }
   } else if (profile.bitrateStrategy === "constrained" && sizeCapBytes > 0) {
-    // Constrained VBR: fill the size budget, capped at a near-visually-lossless
+    // Constrained VBR: fill the size budget, capped at a near-transparent
     // ceiling so short clips don't bloat. Safety margin covers container +
     // VBR overshoot so we stay comfortably under the cap.
     const safety = 0.92;
     const totalBudget = (sizeCapBytes * 8 * safety) / effectiveDurationSec;
     const videoBudget = Math.max(totalBudget - audioBitrate, 800_000);
-    const ceiling = 10_000_000; // ~10 Mbps ≈ visually lossless at 1080p
+    const ceiling = 10_000_000; // ~10 Mbps ≈ visually transparent at 1080p
     videoBitrate = Math.min(videoBudget, ceiling);
   } else {
     // Overprovision: aim for a high, quality-first target scaled by pixel rate,
