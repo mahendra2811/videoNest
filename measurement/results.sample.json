@@ -1,0 +1,28 @@
+[
+  {
+    "_comment": "SCHEMA + one filled example. analyze.mjs emits an array of these. inputSpec is parsed from the filename; the rest is measured by ffprobe on the platform-SERVED file (what WhatsApp/IG/etc handed back), not your source. Paste your real results.json back so measuredOutput can be filled into lib/config/profiles.ts.",
+    "inputSpec": {
+      "raw": "1080p_30fps_9x16_highmotion_sdr_29s__android_HD.mp4",
+      "resolution": "1080p",
+      "fps": 30,
+      "aspect": "9:16",
+      "content": "highmotion",
+      "range": "sdr",
+      "durationSec": 29,
+      "device": "android",
+      "quality": "HD"
+    },
+    "outputWidth": 720,
+    "outputHeight": 1280,
+    "outputFps": 30,
+    "vBitrate": 2050000,
+    "vCodec": "h264",
+    "profile": "High",
+    "level": 4.0,
+    "pixFmt": "yuv420p",
+    "aBitrate": 128000,
+    "aCodec": "aac",
+    "container": "mov",
+    "sizeBytes": 7654321
+  }
+]

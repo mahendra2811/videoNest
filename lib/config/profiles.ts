@@ -209,3 +209,51 @@ export function requireProfile(id: string): PlatformProfile {
   if (!profile) throw new Error(`Unknown platform profile: ${id}`);
   return profile;
 }
+
+// --- Profile freshness (A2) -------------------------------------------------
+
+/** Re-verify a profile at least this often; older = stale (dev warning + UI note). */
+export const STALE_AFTER_DAYS = 90;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Parse a "YYYY-MM" or ISO date string to a Date (UTC, first of month). */
+export function parseVerified(v?: string): Date | null {
+  if (!v) return null;
+  const ym = /^(\d{4})-(\d{2})$/.exec(v.trim());
+  if (ym) return new Date(Date.UTC(Number(ym[1]), Number(ym[2]) - 1, 1));
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Whole days since a profile was last verified, relative to `asOf`. null if unknown. */
+export function daysSinceVerified(
+  profile: PlatformProfile,
+  asOf: Date = new Date(),
+): number | null {
+  const verified = parseVerified(profile.lastVerified);
+  if (!verified) return null;
+  return Math.floor((asOf.getTime() - verified.getTime()) / MS_PER_DAY);
+}
+
+/** True when the profile hasn't been verified within `maxDays`. Unknown = stale. */
+export function isProfileStale(
+  profile: PlatformProfile,
+  asOf: Date = new Date(),
+  maxDays: number = STALE_AFTER_DAYS,
+): boolean {
+  const days = daysSinceVerified(profile, asOf);
+  return days === null || days > maxDays;
+}
+
+/** Live profiles whose verification is stale (for the dev warning / QA). */
+export function staleProfiles(asOf: Date = new Date()): PlatformProfile[] {
+  return getLiveProfiles().filter((p) => isProfileStale(p, asOf));
+}
+
+/** Short, user-facing "last verified" label, e.g. "Jun 2026". null if unknown. */
+export function lastVerifiedLabel(profile: PlatformProfile): string | null {
+  const d = parseVerified(profile.lastVerified);
+  if (!d) return null;
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}

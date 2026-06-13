@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { Card } from "@/components/ui/card";
-import { requireProfile } from "@/lib/config/profiles";
+import { lastVerifiedLabel, requireProfile } from "@/lib/config/profiles";
 import { getPlatformContent } from "@/lib/content/platforms";
 import { webApplicationJsonLd } from "@/lib/seo/jsonld";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -23,6 +23,7 @@ export function buildToolMetadata(profileId: string): Metadata {
 export function ToolPage({ profileId }: { profileId: string }) {
   const profile = requireProfile(profileId);
   const content = getPlatformContent(profileId);
+  const verified = lastVerifiedLabel(profile);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-10 sm:px-6">
@@ -46,6 +47,12 @@ export function ToolPage({ profileId }: { profileId: string }) {
         <ShieldCheck className="h-4 w-4 text-brand-via" />
         100% on your device — your video never leaves it.
       </p>
+
+      {verified && (
+        <p className="text-center text-[11px] text-muted/80">
+          {profile.label} profile last verified {verified}.
+        </p>
+      )}
     </div>
   );
 }
