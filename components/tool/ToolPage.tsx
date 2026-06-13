@@ -6,7 +6,7 @@ import { ToolScreen } from "@/components/tool/ToolScreen";
 import { Card } from "@/components/ui/card";
 import { lastVerifiedLabel, requireProfile } from "@/lib/config/profiles";
 import { getPlatformContent } from "@/lib/content/platforms";
-import { webApplicationJsonLd } from "@/lib/seo/jsonld";
+import { faqJsonLd, softwareApplicationJsonLd } from "@/lib/seo/jsonld";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 /** Per-route metadata for a platform's tool page. */
@@ -28,7 +28,14 @@ export function ToolPage({ profileId }: { profileId: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-10 sm:px-6">
-      <JsonLd data={webApplicationJsonLd()} />
+      <JsonLd
+        data={softwareApplicationJsonLd({
+          name: `${profile.label} video optimizer`,
+          slug: profile.slug,
+          description: content.metaDescription,
+        })}
+      />
+      {content.faqs.length > 0 && <JsonLd data={faqJsonLd(content.faqs)} />}
 
       <header className="flex flex-col items-center gap-1.5 text-center">
         <p className="text-sm font-medium text-muted">Optimize for</p>

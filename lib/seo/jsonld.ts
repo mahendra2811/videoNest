@@ -45,6 +45,24 @@ export function webApplicationJsonLd() {
   };
 }
 
+export function softwareApplicationJsonLd(opts: {
+  name: string;
+  slug: string;
+  description: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: opts.name,
+    url: absoluteUrl(`/${opts.slug}`),
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any (web browser)",
+    description: opts.description,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    browserRequirements: "Requires a modern browser with WebCodecs support.",
+  };
+}
+
 export function faqJsonLd(items: FaqItem[]) {
   return {
     "@context": "https://schema.org",
