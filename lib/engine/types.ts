@@ -24,6 +24,54 @@ export type MeasuredOutput = {
   aBitrate?: number;
 };
 
+/** A burned-in text layer (editor B2). Positions are normalized 0..1 in output. */
+export type TextLayer = {
+  type: "text";
+  id: string;
+  text: string;
+  /** Normalized centre position in output space (0..1). */
+  x: number;
+  y: number;
+  /** Font size as a fraction of output height (e.g. 0.06). */
+  size: number;
+  color: string;
+  fontFamily: string;
+  align: "left" | "center" | "right";
+  /** Draw a semi-opaque rounded background pill behind the text. */
+  background: boolean;
+  /** Draw a soft drop shadow for legibility. */
+  shadow: boolean;
+};
+
+/** A burned-in image / sticker layer (editor B4). */
+export type ImageLayer = {
+  type: "image";
+  id: string;
+  /** Data URL or bundled asset path. */
+  src: string;
+  /** Normalized centre position in output space (0..1). */
+  x: number;
+  y: number;
+  /** Width as a fraction of output width (height keeps the image's aspect). */
+  scale: number;
+  /** Clockwise rotation in degrees. */
+  rotation: number;
+};
+
+export type Overlay = TextLayer | ImageLayer;
+
+/** Background-music / audio-replace settings (editor B3). */
+export type AudioMix = {
+  /** "replace" the original audio or "mix" the new track under it. */
+  mode: "replace" | "mix";
+  /** Volume of the added track, 0..1. */
+  volume: number;
+  /** Lower the original track while the added one plays. */
+  duckOriginal?: boolean;
+  fadeInSec?: number;
+  fadeOutSec?: number;
+};
+
 /**
  * Per-run user choices (from the optional Edit step). All optional; the engine
  * works with an empty object. Threaded buildPlan ← run ← worker ← optimize().
@@ -43,6 +91,12 @@ export type EncodeOptions = {
   cropRect?: { x: number; y: number; width: number; height: number };
   /** Explicit trim window in seconds (editor B1). */
   trim?: { start: number; end: number };
+  /** Burned-in text/image overlays (editor B2/B4). */
+  overlays?: Overlay[];
+  /** Background music / replace audio settings (editor B3). */
+  audioMix?: AudioMix;
+  /** The added audio file for audioMix. Structured-cloned to the worker. */
+  musicFile?: File;
 };
 
 /** A platform-specific output profile (see lib/config/profiles.ts). */
@@ -129,6 +183,10 @@ export type EncodePlan = {
   sharpen: boolean;
   /** Normalize loudness to −14 LUFS (opt-in, default false). */
   normalizeLoudness: boolean;
+  /** Burned-in overlays (text/stickers), composited per-frame. */
+  overlays: Overlay[];
+  /** Background-music / replace-audio settings (added track passed separately). */
+  audioMix?: AudioMix;
   /** Output frame rate. */
   fps: number;
   /** Trim to this many seconds from the start (undefined = keep full). */

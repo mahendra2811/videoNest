@@ -1,20 +1,23 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { flags } from "@/lib/config/flags";
-import { DEFAULT_PROFILE_ID, getProfile } from "@/lib/config/profiles";
+import { DEFAULT_PROFILE_ID, requireProfile } from "@/lib/config/profiles";
+import { type EditState, editStateToOptions, hasEdits, initialEditState } from "@/lib/edit/state";
 import { optimize, probeFile } from "@/lib/engine";
 import { EngineError, INPUT_LIMITS, type OptimizeResult, type VideoMeta } from "@/lib/engine/types";
 import { uploadAndOptimize } from "@/lib/heavy/client";
 import { showLocalNotification } from "@/lib/notify/notify";
 import { useToolStore } from "@/lib/store/tool";
 import { formatDuration } from "@/lib/utils";
+import { CompareOnStatus } from "./CompareOnStatus";
 import { Dropzone } from "./Dropzone";
+import { EditPanel } from "./EditPanel";
 import { ErrorCard } from "./ErrorCard";
 import { Preview } from "./Preview";
 import { ProcessingRing } from "./ProcessingRing";
@@ -22,10 +25,12 @@ import { SegmentResults } from "./SegmentResults";
 import { ShareActions } from "./ShareActions";
 
 export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: string }) {
-  const platformLabel = getProfile(profileId)?.label ?? "this platform";
+  const profile = requireProfile(profileId);
+  const platformLabel = profile.label;
   const {
     phase,
     file,
+    meta,
     probing,
     progress,
     results,
@@ -41,6 +46,10 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     setError,
     reset,
   } = useToolStore();
+
+  const [editState, setEditState] = React.useState<EditState>(initialEditState);
+  const [editing, setEditing] = React.useState(false);
+  const edited = hasEdits(editState, profile);
 
   const abortRef = React.useRef<AbortController | null>(null);
   // Track the latest selected file so the probe effect ignores stale results.
@@ -84,10 +93,11 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     const controller = new AbortController();
     abortRef.current = controller;
     startProcessing();
-    track("optimize_started");
+    track("optimize_started", { edited });
 
     try {
-      const res = await optimize(file, profileId, setProgress, controller.signal);
+      const options = editStateToOptions(editState, profile);
+      const res = await optimize(file, profileId, setProgress, controller.signal, options);
       setDone(res);
       const primary = res[0];
       track("optimize_succeeded", {
@@ -125,11 +135,28 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
     } finally {
       abortRef.current = null;
     }
-  }, [file, profileId, platformLabel, startProcessing, setProgress, setDone, setError]);
+  }, [
+    file,
+    profileId,
+    profile,
+    platformLabel,
+    editState,
+    edited,
+    startProcessing,
+    setProgress,
+    setDone,
+    setError,
+  ]);
 
   const handleCancel = React.useCallback(() => {
     abortRef.current?.abort();
   }, []);
+
+  const resetAll = React.useCallback(() => {
+    setEditState(initialEditState());
+    setEditing(false);
+    reset();
+  }, [reset]);
 
   // Opt-in server heavy-tier (only when enabled). Uploads the source — the only
   // path where a video leaves the device.
@@ -183,6 +210,7 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
           videoCodec: "avc",
           sharpen: false,
           normalizeLoudness: false,
+          overlays: [],
           fps: 30,
           fastPath: false,
           videoBitrate: 0,
@@ -228,6 +256,8 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
 
   const handleSelect = React.useCallback(
     (f: File) => {
+      setEditState(initialEditState());
+      setEditing(false);
       selectFile(f);
       track("file_selected", { size_kb: Math.round(f.size / 1024) });
     },
@@ -251,16 +281,26 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
             exit={{ opacity: 0 }}
             className="flex flex-col gap-4"
           >
-            {inputUrl && (
-              <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-3xl border border-border bg-black">
-                <video
-                  src={inputUrl}
-                  muted
-                  playsInline
-                  controls
-                  className="max-h-[46vh] w-full object-contain"
-                />
-              </div>
+            {editing ? (
+              <EditPanel
+                state={editState}
+                setState={setEditState}
+                profile={profile}
+                meta={meta}
+                inputUrl={inputUrl}
+              />
+            ) : (
+              inputUrl && (
+                <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-3xl border border-border bg-black">
+                  <video
+                    src={inputUrl}
+                    muted
+                    playsInline
+                    controls
+                    className="max-h-[46vh] w-full object-contain"
+                  />
+                </div>
+              )
             )}
             <Button
               onClick={handleOptimize}
@@ -269,11 +309,22 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
               disabled={probing}
             >
               <Sparkles className="h-5 w-5" />
-              {probing ? "Reading your video…" : "Make it sharp"}
+              {probing ? "Reading your video…" : edited ? "Apply & make it sharp" : "Make it sharp"}
             </Button>
-            <Button onClick={reset} variant="secondary" size="lg" className="w-full">
-              Choose another video
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => setEditing((e) => !e)}
+                variant="secondary"
+                size="lg"
+                className="w-full"
+              >
+                <Pencil className="h-4 w-4" />
+                {editing ? "Hide edits" : edited ? "Edits added" : "Edit video"}
+              </Button>
+              <Button onClick={resetAll} variant="secondary" size="lg" className="w-full">
+                Choose another
+              </Button>
+            </div>
             {flags.serverTierEnabled && (
               <button
                 type="button"
@@ -313,11 +364,16 @@ export function ToolScreen({ profileId = DEFAULT_PROFILE_ID }: { profileId?: str
                   filename={results[0].output.filename}
                   profileId={profileId}
                 />
+                <CompareOnStatus
+                  optimizedBlob={results[0].blob}
+                  optimizedName={results[0].output.filename}
+                  original={file}
+                />
               </>
             ) : (
               <SegmentResults results={results} outputUrls={outputUrls} profileId={profileId} />
             )}
-            <Button onClick={reset} variant="secondary" size="lg" className="w-full">
+            <Button onClick={resetAll} variant="secondary" size="lg" className="w-full">
               Optimize another video
             </Button>
           </motion.div>

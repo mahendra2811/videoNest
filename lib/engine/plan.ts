@@ -223,10 +223,14 @@ export function buildPlan(
   }
   videoBitrate = Math.round(videoBitrate);
 
-  // --- Codec / sharpen / loudness (user options) ---------------------------
+  // --- Codec / sharpen / loudness / overlays / audio (user options) --------
   const videoCodec = resolveCodec(profile, options);
   const sharpen = options.sharpen === true;
   const normalizeLoudness = options.normalizeLoudness === true;
+  const overlays = options.overlays ?? [];
+  const audioMix = options.audioMix;
+  if (overlays.length > 0) notes.push(`${overlays.length} overlay(s) added`);
+  if (audioMix) notes.push(audioMix.mode === "replace" ? "Audio replaced" : "Music mixed in");
 
   // --- Already-optimal fast path -------------------------------------------
   // Any active edit (sharpen, loudness, fill-crop, reframe, codec switch,
@@ -241,6 +245,8 @@ export function buildPlan(
     !cropRect &&
     !userTrim &&
     !measured &&
+    overlays.length === 0 &&
+    !audioMix &&
     aspectMode !== "fill" &&
     videoCodec === "avc";
   const fastPath =
@@ -275,6 +281,8 @@ export function buildPlan(
     videoCodec,
     sharpen,
     normalizeLoudness,
+    overlays,
+    audioMix,
     fps,
     trimToSec,
     trim: userTrim,

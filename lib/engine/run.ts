@@ -1,6 +1,6 @@
 import { requireProfile } from "@/lib/config/profiles";
 import { canUseWebCodecs, resolveSupportedCodec } from "./capabilities";
-import { encodeFfmpeg } from "./encode.ffmpeg";
+import { encodeFfmpeg, mixAudioTrack } from "./encode.ffmpeg";
 import { type EncodeResult, encodeWebCodecs } from "./encode.webcodecs";
 import { buildPlan, computeSegments } from "./plan";
 import { probe } from "./probe";
@@ -186,6 +186,21 @@ export async function runOptimize(
     }
 
     const enc = await encodeWithFallback(file, meta, plan, segmentProgress, signal, wcSupported);
+
+    // Background-music / replace-audio second pass (B3). Single-output only —
+    // we don't mix a track across auto-split WhatsApp segments.
+    if (!window && enc.plan.audioMix && options.musicFile) {
+      onProgress({ stage: "finishing", value: 0.96, label: "Adding audio" });
+      const mixed = await mixAudioTrack(
+        enc.result.blob,
+        options.musicFile,
+        enc.plan.audioMix,
+        enc.plan,
+        signal,
+      );
+      enc.result = { ...enc.result, blob: mixed };
+    }
+
     results.push(makeResult(enc.result, enc.plan, enc.path, part));
   }
 

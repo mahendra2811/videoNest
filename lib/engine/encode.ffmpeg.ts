@@ -1,7 +1,7 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
 import type { EncodeResult } from "./encode.webcodecs";
-import { type EncodePlan, EngineError, type VideoMeta } from "./types";
+import { type AudioMix, type EncodePlan, EngineError, type VideoMeta } from "./types";
 
 // Self-hosted single-threaded core (no SharedArrayBuffer required).
 const CORE_URL = "/ffmpeg/ffmpeg-core.js";
@@ -187,6 +187,106 @@ export async function encodeFfmpeg(
     throw new EngineError("ENCODE_FAILED", "Fallback encoding failed.", { cause: err });
   } finally {
     instance.off?.("progress", progressHandler);
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
+
+function musicExt(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext && /^[a-z0-9]{2,4}$/.test(ext) ? ext : "mp3";
+}
+
+/** Build the `[1:a]` music-processing chain (volume + optional fades). */
+function musicChain(mix: AudioMix, durationSec: number): string {
+  const parts = [`volume=${mix.volume.toFixed(3)}`];
+  if (mix.fadeInSec && mix.fadeInSec > 0) {
+    parts.push(`afade=t=in:st=0:d=${mix.fadeInSec}`);
+  }
+  if (mix.fadeOutSec && mix.fadeOutSec > 0 && durationSec > mix.fadeOutSec) {
+    parts.push(`afade=t=out:st=${(durationSec - mix.fadeOutSec).toFixed(2)}:d=${mix.fadeOutSec}`);
+  }
+  return parts.join(",");
+}
+
+/**
+ * Background-music / replace-audio second pass (editor B3). Runs after the video
+ * encode and copies the video stream (`-c:v copy`) so overlays/quality are
+ * untouched — only the audio is rebuilt. Lazy-loads ffmpeg.wasm.
+ */
+export async function mixAudioTrack(
+  videoBlob: Blob,
+  musicFile: File,
+  mix: AudioMix,
+  plan: EncodePlan,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  if (signal?.aborted) throw new EngineError("CANCELLED");
+  const instance = await getFFmpeg();
+  if (signal?.aborted) throw new EngineError("CANCELLED");
+
+  const inName = "mix-video.mp4";
+  const musicName = `mix-music.${musicExt(musicFile.name)}`;
+  const outName = "mix-out.mp4";
+  const kbps = plan.audio ? Math.round(plan.audio.bitrate / 1000) : 192;
+  const hasOriginalAudio = Boolean(plan.audio);
+  const duration = plan.effectiveDurationSec;
+  const chain = musicChain(mix, duration);
+
+  const onAbort = () => {
+    try {
+      instance.terminate();
+    } catch {
+      // ignore
+    }
+    ffmpeg = null;
+    loadPromise = null;
+  };
+  signal?.addEventListener("abort", onAbort, { once: true });
+
+  try {
+    await instance.writeFile(inName, await fetchFile(videoBlob));
+    await instance.writeFile(musicName, await fetchFile(musicFile));
+
+    const args = ["-i", inName, "-i", musicName];
+    if (mix.mode === "replace" || !hasOriginalAudio) {
+      args.push("-filter_complex", `[1:a]${chain}[a]`);
+      args.push("-map", "0:v:0", "-map", "[a]");
+    } else {
+      const orig = mix.duckOriginal ? "volume=0.35" : "volume=1.0";
+      args.push(
+        "-filter_complex",
+        `[1:a]${chain}[m];[0:a]${orig}[o];[o][m]amix=inputs=2:duration=first:dropout_transition=0[a]`,
+      );
+      args.push("-map", "0:v:0", "-map", "[a]");
+    }
+    args.push("-c:v", "copy", "-c:a", "aac", "-b:a", `${kbps}k`, "-ar", "48000");
+    args.push("-shortest", "-movflags", "+faststart", "-y", outName);
+
+    const code = await instance.exec(args);
+    if (signal?.aborted) throw new EngineError("CANCELLED");
+    if (code !== 0) {
+      throw new EngineError("ENCODE_FAILED", "Could not add the audio track.");
+    }
+
+    const data = await instance.readFile(outName);
+    const bytes = data instanceof Uint8Array ? data : new TextEncoder().encode(String(data));
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+
+    try {
+      await instance.deleteFile(inName);
+      await instance.deleteFile(musicName);
+      await instance.deleteFile(outName);
+    } catch {
+      // ignore
+    }
+
+    return new Blob([copy], { type: "video/mp4" });
+  } catch (err) {
+    if (err instanceof EngineError) throw err;
+    if (signal?.aborted) throw new EngineError("CANCELLED");
+    throw new EngineError("ENCODE_FAILED", "Could not add the audio track.", { cause: err });
+  } finally {
     signal?.removeEventListener("abort", onAbort);
   }
 }

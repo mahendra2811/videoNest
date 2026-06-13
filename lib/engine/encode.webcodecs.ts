@@ -11,7 +11,7 @@ import {
   Output,
   type VideoSample,
 } from "mediabunny";
-import { type EncodePlan, EngineError, type VideoMeta } from "./types";
+import { type EncodePlan, EngineError, type Overlay, type VideoMeta } from "./types";
 
 export type EncodeResult = {
   blob: Blob;
@@ -19,6 +19,8 @@ export type EncodeResult = {
   height: number;
   durationSec: number;
 };
+
+type Bitmaps = Map<string, ImageBitmap>;
 
 let aacRegistered = false;
 async function ensureAacEncoder(): Promise<void> {
@@ -48,12 +50,105 @@ function mediabunnyCodec(codec: "avc" | "av1" | "hevc"): "avc" | "av1" | "hevc" 
   return codec;
 }
 
+/** Preload image/sticker overlays into ImageBitmaps (keyed by src) for drawing. */
+async function preloadOverlayBitmaps(overlays: Overlay[]): Promise<Bitmaps> {
+  const bitmaps: Bitmaps = new Map();
+  await Promise.all(
+    overlays
+      .filter((o): o is Extract<Overlay, { type: "image" }> => o.type === "image")
+      .map(async (o) => {
+        if (bitmaps.has(o.src)) return;
+        try {
+          const blob = await (await fetch(o.src)).blob();
+          bitmaps.set(o.src, await createImageBitmap(blob));
+        } catch {
+          // Skip an overlay we can't decode rather than failing the whole encode.
+        }
+      }),
+  );
+  return bitmaps;
+}
+
+/** Draw all overlays (text + images) onto the composited frame, in order. */
+function drawOverlays(
+  ctx: OffscreenCanvasRenderingContext2D,
+  overlays: Overlay[],
+  outW: number,
+  outH: number,
+  bitmaps: Bitmaps,
+): void {
+  for (const layer of overlays) {
+    if (layer.type === "text") {
+      const px = Math.max(8, layer.size * outH);
+      ctx.save();
+      ctx.font = `700 ${px}px ${layer.fontFamily}`;
+      ctx.textAlign = layer.align;
+      ctx.textBaseline = "middle";
+      const x = layer.x * outW;
+      const y = layer.y * outH;
+      const metrics = ctx.measureText(layer.text);
+      const textW = metrics.width;
+      const padX = px * 0.4;
+      const padY = px * 0.3;
+      if (layer.background) {
+        const bx =
+          layer.align === "center" ? x - textW / 2 : layer.align === "right" ? x - textW : x;
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        const r = px * 0.25;
+        roundRect(ctx, bx - padX, y - px / 2 - padY, textW + padX * 2, px + padY * 2, r);
+        ctx.fill();
+      }
+      if (layer.shadow) {
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = px * 0.12;
+        ctx.shadowOffsetY = px * 0.04;
+      }
+      ctx.fillStyle = layer.color;
+      ctx.fillText(layer.text, x, y);
+      ctx.restore();
+    } else {
+      const bmp = bitmaps.get(layer.src);
+      if (!bmp) continue;
+      const w = layer.scale * outW;
+      const h = (w * bmp.height) / bmp.width;
+      ctx.save();
+      ctx.translate(layer.x * outW, layer.y * outH);
+      ctx.rotate((layer.rotation * Math.PI) / 180);
+      ctx.drawImage(bmp, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    }
+  }
+}
+
+function roundRect(
+  ctx: OffscreenCanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
 /**
  * Build a blurred-pad compositor as a Mediabunny `process` callback. Draws a
  * blurred, scaled "cover" background, then the sharp source "contained" on top
  * (never upscaled beyond native), onto a fixed target canvas.
  */
-function makeBlurPadProcess(outW: number, outH: number) {
+function makeBlurPadProcess(
+  outW: number,
+  outH: number,
+  overlays: Overlay[] = [],
+  bitmaps: Bitmaps = new Map(),
+) {
   let canvas: OffscreenCanvas | null = null;
   let ctx: OffscreenCanvasRenderingContext2D | null = null;
 
@@ -82,6 +177,7 @@ function makeBlurPadProcess(outW: number, outH: number) {
     const fh = sh * fit;
     sample.draw(ctx, (outW - fw) / 2, (outH - fh) / 2, fw, fh);
 
+    if (overlays.length) drawOverlays(ctx, overlays, outW, outH, bitmaps);
     return canvas;
   };
 }
@@ -92,7 +188,12 @@ function makeBlurPadProcess(outW: number, outH: number) {
  * which approximates Lanczos far better than a single bilinear draw and reduces
  * aliasing. Also used for HDR sources (drawing onto a 2D/SDR canvas tone-maps).
  */
-function makeScaleProcess(outW: number, outH: number) {
+function makeScaleProcess(
+  outW: number,
+  outH: number,
+  overlays: Overlay[] = [],
+  bitmaps: Bitmaps = new Map(),
+) {
   let canvas: OffscreenCanvas | null = null;
   let ctx: OffscreenCanvasRenderingContext2D | null = null;
   let scratch: OffscreenCanvas | null = null;
@@ -129,6 +230,7 @@ function makeScaleProcess(outW: number, outH: number) {
     } else {
       sample.draw(ctx, 0, 0, outW, outH);
     }
+    if (overlays.length) drawOverlays(ctx, overlays, outW, outH, bitmaps);
     return canvas;
   };
 }
@@ -142,6 +244,8 @@ function makeFillProcess(
   outW: number,
   outH: number,
   cropRect?: { x: number; y: number; width: number; height: number },
+  overlays: Overlay[] = [],
+  bitmaps: Bitmaps = new Map(),
 ) {
   let canvas: OffscreenCanvas | null = null;
   let ctx: OffscreenCanvasRenderingContext2D | null = null;
@@ -168,6 +272,7 @@ function makeFillProcess(
     const dx = outW / 2 - (rx + rw / 2) * cover;
     const dy = outH / 2 - (ry + rh / 2) * cover;
     sample.draw(ctx, dx, dy, dw, dh);
+    if (overlays.length) drawOverlays(ctx, overlays, outW, outH, bitmaps);
     return canvas;
   };
 }
@@ -198,6 +303,12 @@ export async function encodeWebCodecs(
   let video: any;
 
   const codec = mediabunnyCodec(plan.videoCodec);
+  const overlays = plan.overlays ?? [];
+  const hasOverlays = overlays.length > 0;
+  // Overlays must be drawn on the canvas, so they need a compositor process.
+  const bitmaps = hasOverlays
+    ? await preloadOverlayBitmaps(overlays)
+    : new Map<string, ImageBitmap>();
 
   if (plan.fastPath) {
     // Remux / minimal re-encode: copy the compatible H.264 track when possible.
@@ -212,7 +323,7 @@ export async function encodeWebCodecs(
       forceTranscode: true,
       processedWidth: outW,
       processedHeight: outH,
-      process: makeBlurPadProcess(outW, outH),
+      process: makeBlurPadProcess(outW, outH, overlays, bitmaps),
     };
     video.frameRate = plan.fps; // force constant frame rate (platforms expect CFR)
   } else {
@@ -229,12 +340,13 @@ export async function encodeWebCodecs(
     };
     if (plan.aspectMode === "fill" || plan.cropRect) {
       // Crop-to-fill / manual reframe (B1).
-      video.process = makeFillProcess(outW, outH, plan.cropRect);
+      video.process = makeFillProcess(outW, outH, plan.cropRect, overlays, bitmaps);
       video.processedWidth = outW;
       video.processedHeight = outH;
-    } else if (plan.hqDownscale || meta.isHdr) {
-      // High-quality stepped downscale (A4) and/or HDR→SDR tone-map.
-      video.process = makeScaleProcess(outW, outH);
+    } else if (plan.hqDownscale || meta.isHdr || hasOverlays) {
+      // High-quality stepped downscale (A4), HDR→SDR tone-map, or overlays —
+      // all require compositing through the canvas.
+      video.process = makeScaleProcess(outW, outH, overlays, bitmaps);
       video.processedWidth = outW;
       video.processedHeight = outH;
     } else {
