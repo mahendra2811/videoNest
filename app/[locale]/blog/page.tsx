@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getPostsSorted } from "@/lib/content/blog";
+import { routing } from "@/i18n/routing";
+import { getAllPosts } from "@/lib/blog/mdx";
 import { buildMetadata } from "@/lib/seo/metadata";
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export const metadata: Metadata = buildMetadata({
   title: "Blog",
@@ -18,8 +24,10 @@ function formatDate(iso: string): string {
   });
 }
 
-export default function BlogIndexPage() {
-  const posts = getPostsSorted();
+export default async function BlogIndexPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const posts = getAllPosts(locale);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-14 sm:px-6">

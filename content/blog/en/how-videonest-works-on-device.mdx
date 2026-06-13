@@ -1,0 +1,27 @@
+---
+title: How VideoNest optimizes video entirely on your device
+description: No uploads, no servers, no accounts. Here's how VideoNest re-encodes video right in your browser.
+date: "2026-04-20"
+author: VideoNest
+readingMinutes: 4
+excerpt: VideoNest never uploads your video. Here's how the on-device encode pipeline actually works.
+---
+
+A fair question about any "optimize your video" tool: **where does my video go?** With VideoNest, the answer is nowhere. Everything happens on your device, in your browser.
+
+## On-device, by design
+
+VideoNest uses your browser's built-in **WebCodecs** video engine to decode, reshape and re-encode your clip locally. Your file is never sent to a server — there's no upload, no account, and nothing for us to store.
+
+## What it actually does
+
+1. **Reads** your clip's metadata (size, shape, frame rate, colour).
+2. **Plans** the right output for your chosen platform — resolution, aspect handling, bitrate and frame rate.
+3. **Re-encodes** to a clean MP4 (H.264), downscaling with a good resampler and baking in the correct orientation.
+4. **Hands you the file** to share or download.
+
+On browsers without the right support, it falls back to a self-hosted **ffmpeg.wasm** engine — still entirely on your device.
+
+## Why this matters
+
+Because nothing leaves your phone, VideoNest is private by default, works offline once installed, and stays free with no watermark. We can't promise "lossless" — no tool can beat a platform's own re-compression — but we *can* make sure the platform starts from the cleanest possible file.

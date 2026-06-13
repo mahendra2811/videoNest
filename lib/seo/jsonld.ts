@@ -1,8 +1,8 @@
+import type { BlogPostMeta } from "@/lib/blog/mdx";
 import { absoluteUrl, siteConfig } from "@/lib/config/site";
-import type { BlogPost } from "@/lib/content/blog";
 import type { FaqItem } from "@/lib/content/faq";
 
-export function blogPostingJsonLd(post: BlogPost) {
+export function blogPostingJsonLd(post: BlogPostMeta) {
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",

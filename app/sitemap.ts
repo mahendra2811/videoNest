@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
+import { getAllSlugs } from "@/lib/blog/mdx";
 import { getLiveProfiles } from "@/lib/config/profiles";
 import { absoluteUrl } from "@/lib/config/site";
-import { BLOG_POSTS } from "@/lib/content/blog";
 
 /** Absolute URL for a path in a given locale (English is unprefixed). */
 function localeUrl(path: string, locale: string): string {
@@ -36,8 +36,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "weekly" as const,
   }));
 
-  const blogRoutes = BLOG_POSTS.map((p) => ({
-    path: `/blog/${p.slug}`,
+  const blogRoutes = getAllSlugs().map((slug) => ({
+    path: `/blog/${slug}`,
     priority: 0.5,
     changeFrequency: "monthly" as const,
   }));
