@@ -1,15 +1,18 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { Link } from "@/i18n/navigation";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 
-const navLinks = [
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/blog", label: "Blog" },
-  { href: "/download", label: "Get app" },
-  { href: "/about", label: "About" },
-];
+export async function Header() {
+  const t = await getTranslations("Nav");
+  const navLinks = [
+    { href: "/how-it-works", label: t("howItWorks") },
+    { href: "/blog", label: t("blog") },
+    { href: "/download", label: t("getApp") },
+    { href: "/about", label: t("about") },
+  ];
 
-export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -27,6 +30,7 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <LanguageSwitcher />
           <ThemeToggle />
         </nav>
       </div>

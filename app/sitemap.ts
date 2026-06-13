@@ -1,7 +1,21 @@
 import type { MetadataRoute } from "next";
+import { routing } from "@/i18n/routing";
 import { getLiveProfiles } from "@/lib/config/profiles";
 import { absoluteUrl } from "@/lib/config/site";
 import { BLOG_POSTS } from "@/lib/content/blog";
+
+/** Absolute URL for a path in a given locale (English is unprefixed). */
+function localeUrl(path: string, locale: string): string {
+  if (locale === routing.defaultLocale) return absoluteUrl(path);
+  return absoluteUrl(path === "/" ? `/${locale}` : `/${locale}${path}`);
+}
+
+/** hreflang alternates map for a path, across all locales. */
+function languageAlternates(path: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const locale of routing.locales) languages[locale] = localeUrl(path, locale);
+  return languages;
+}
 
 const staticRoutes = [
   { path: "/", priority: 1, changeFrequency: "weekly" as const },
@@ -32,5 +46,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: absoluteUrl(route.path),
     changeFrequency: route.changeFrequency,
     priority: route.priority,
+    alternates: { languages: languageAlternates(route.path) },
   }));
 }

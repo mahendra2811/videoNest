@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Prose } from "@/components/marketing/Prose";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { siteConfig } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
 

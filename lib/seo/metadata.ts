@@ -25,11 +25,18 @@ export function buildMetadata({
     : `${siteConfig.name} — ${siteConfig.tagline}`;
   const desc = description ?? siteConfig.description;
   const url = absoluteUrl(path);
+  // hreflang alternates — English is unprefixed (default), Hindi under /hi (D3).
+  const hiPath = path === "/" ? "/hi" : `/hi${path}`;
+  const languages = {
+    en: url,
+    hi: absoluteUrl(hiPath),
+    "x-default": url,
+  };
 
   return {
     title: fullTitle,
     description: desc,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages },
     robots: noindex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {
       type: "website",

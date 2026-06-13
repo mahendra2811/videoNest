@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { HeroBackground } from "./HeroBackground";
 import { TrustNote } from "./TrustNote";
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { GetApp } from "@/components/marketing/GetApp";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata({

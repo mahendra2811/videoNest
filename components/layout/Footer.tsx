@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { Link } from "@/i18n/navigation";
 import { siteConfig } from "@/lib/config/site";
 
 const legalLinks = [

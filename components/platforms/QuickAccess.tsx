@@ -1,8 +1,8 @@
 "use client";
 
 import { Clock, Heart } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
+import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/config/profiles";
 import type { PlatformProfile } from "@/lib/engine/types";
 import { useFavouritesStore } from "@/lib/store/favourites";

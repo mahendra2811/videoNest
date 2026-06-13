@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { IconType } from "react-icons";
 import { SiFacebook, SiInstagram, SiWhatsapp, SiYoutube } from "react-icons/si";
+import { Link } from "@/i18n/navigation";
 import { PLATFORM_PROFILES } from "@/lib/config/profiles";
 import type { PlatformProfile } from "@/lib/engine/types";
 

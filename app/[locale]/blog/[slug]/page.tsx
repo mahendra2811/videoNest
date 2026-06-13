@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FAQ } from "@/components/marketing/FAQ";
 import { Prose } from "@/components/marketing/Prose";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { BLOG_POSTS, getPost } from "@/lib/content/blog";
 import { blogPostingJsonLd, faqJsonLd } from "@/lib/seo/jsonld";
 import { buildMetadata } from "@/lib/seo/metadata";
