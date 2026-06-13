@@ -3,4 +3,6 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
 allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
   ffmpeg-static: false

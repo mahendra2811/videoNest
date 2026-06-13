@@ -1,5 +1,9 @@
 import withSerwistInit from "@serwist/next";
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// next-intl: locale routing + per-locale message catalogs (D3).
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const securityHeaders = [
   // Cross-origin isolation so SharedArrayBuffer / ffmpeg.wasm threading works.
@@ -38,7 +42,7 @@ const withSerwist = withSerwistInit({
   exclude: [/ffmpeg-core\.wasm$/, /ffmpeg-core\.js$/, /\.map$/, /^manifest.*\.js$/],
 });
 
-let config: NextConfig = withSerwist(baseConfig);
+let config: NextConfig = withNextIntl(withSerwist(baseConfig));
 
 // ---------------------------------------------------------------------------
 // Sentry — only wrap when a DSN is configured, so an empty .env builds clean.

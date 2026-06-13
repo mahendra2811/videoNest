@@ -1,0 +1,66 @@
+{
+  "Common": {
+    "tagline": "Stay sharp after the upload.",
+    "promiseShort": "Best possible quality after the platform compresses it.",
+    "promiseLong": "Every platform re-compresses what you upload — we can't stop that. VideoNest prepares your video so the platform's own compression does the least possible damage, keeping it as sharp as possible.",
+    "privacy": "100% on your device — your video never leaves it.",
+    "free": "Free, no watermark, no account."
+  },
+  "Nav": {
+    "home": "Home",
+    "favourites": "Favourites",
+    "tools": "Tools",
+    "more": "More",
+    "about": "About",
+    "blog": "Blog",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "theme": "Theme",
+    "language": "Language",
+    "aiEnhanceSoon": "Coming soon: AI Enhance"
+  },
+  "Home": {
+    "choosePlatform": "Choose your platform",
+    "choosePlatformSub": "Pick where you're posting — each format is tuned to its own specs.",
+    "howItWorks": "How it works",
+    "faq": "Frequently asked",
+    "favourites": "Favourites",
+    "recentlyUsed": "Recently used"
+  },
+  "Tool": {
+    "optimizeFor": "Optimize for",
+    "dropPrompt": "Drop your video in and we'll make it look its best after you post.",
+    "optimize": "Make it sharp",
+    "optimizeEdited": "Apply & make it sharp",
+    "reading": "Reading your video…",
+    "edit": "Edit video",
+    "editsAdded": "Edits added",
+    "hideEdits": "Hide edits",
+    "chooseAnother": "Choose another",
+    "ready": "Your video is ready ✨",
+    "statsNote": "We prepare your video so the platform's own compression does the least damage.",
+    "lastVerified": "{platform} profile last verified {date}."
+  },
+  "Editor": {
+    "trim": "Trim",
+    "frame": "Frame",
+    "text": "Text",
+    "stickers": "Stickers",
+    "music": "Music",
+    "qualityOptions": "Quality options",
+    "fit": "Fit",
+    "fill": "Fill",
+    "addText": "Add text",
+    "sharpen": "Light sharpen",
+    "sharpenHint": "Optional — can add artifacts after the platform recompresses.",
+    "normalize": "Normalize loudness (−14 LUFS)",
+    "normalizeHint": "Off by default — most platforms normalize loudness themselves.",
+    "optional": "Editing is optional — skip it and we just optimize."
+  },
+  "Share": {
+    "mobile": "Tap Share, then post the saved video from the app.",
+    "desktop": "Download it, then post from the mobile app (the web uploader compresses harder).",
+    "whatsappHd": "Tip: turn on WhatsApp's HD upload (Settings → Storage and data → Media quality)."
+  }
+}
