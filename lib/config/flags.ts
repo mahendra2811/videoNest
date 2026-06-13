@@ -36,6 +36,10 @@ export const flags = {
    * browser). Off unless explicitly enabled; the server route also requires a
    * Vercel Blob token to actually run. */
   serverTierEnabled: value("NEXT_PUBLIC_SERVER_TIER_ENABLED") === "true",
+  /** Future premium tier (e.g. AI Enhance, 4K server jobs). Default OFF. Gates
+   * NOTHING today — core optimisation, every platform and no-watermark stay
+   * free forever (G2). */
+  premiumEnabled: value("NEXT_PUBLIC_PREMIUM_ENABLED") === "true",
 
   // Raw ids for the few components that need them.
   gaId,

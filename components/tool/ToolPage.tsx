@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { FavouriteButton } from "@/components/tool/FavouriteButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { lastVerifiedLabel, requireProfile } from "@/lib/config/profiles";
 import { getPlatformContent } from "@/lib/content/platforms";
@@ -39,8 +40,13 @@ export function ToolPage({ profileId }: { profileId: string }) {
 
       <header className="flex flex-col items-center gap-1.5 text-center">
         <p className="text-sm font-medium text-muted">Optimize for</p>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
           <span className="text-sunset">{content.highlight}</span>
+          {profile.confidence === "low" && (
+            <Badge variant="soon" className="align-middle text-[10px]">
+              Beta
+            </Badge>
+          )}
         </h1>
         <p className="max-w-xs text-sm text-muted">
           Drop your video in and we'll make it look its best after you post.
