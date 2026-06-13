@@ -8,6 +8,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import { Analytics } from "@/components/analytics/Analytics";
 import { AppSplash } from "@/components/layout/AppSplash";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
@@ -89,7 +90,7 @@ export default async function LocaleLayout({
       <head>
         <AppleSplashLinks />
       </head>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col pb-16 sm:pb-0">
         <NextIntlClientProvider>
           <ThemeProvider>
             <NextTopLoader
@@ -102,6 +103,7 @@ export default async function LocaleLayout({
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
+            <BottomNav />
             <Toaster position="top-center" richColors closeButton />
             <WhatsNew />
           </ThemeProvider>
