@@ -33,7 +33,7 @@ self.onmessage = async (event: MessageEvent<IncomingMessage>) => {
   }
 
   if (data.type === "optimize") {
-    const { id, file, profileId } = data;
+    const { id, file, profileId, options } = data;
     const controller = new AbortController();
     controllers.set(id, controller);
 
@@ -45,6 +45,7 @@ self.onmessage = async (event: MessageEvent<IncomingMessage>) => {
         profileId,
         (progress) => post({ type: "progress", id, progress }),
         controller.signal,
+        options,
       );
       post({ type: "done", id, results });
     } catch (err) {

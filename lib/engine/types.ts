@@ -2,6 +2,49 @@
  * Core type definitions for the VideoNest encode engine.
  */
 
+/** Output video codec choice. AV1/HEVC are opt-in (YouTube) and capability-gated. */
+export type VideoCodecChoice = "avc" | "av1" | "hevc";
+
+/**
+ * A real, measured platform output (from the A1 measurement protocol). When
+ * present on a profile, buildPlan() targets just under the measured bitrate and
+ * matches the measured resolution/fps, so the platform's own re-encode is as
+ * close to passthrough as possible.
+ */
+export type MeasuredOutput = {
+  width: number;
+  height: number;
+  fps: number;
+  /** Measured video bitrate in bits/sec. */
+  vBitrate: number;
+  vCodec: string;
+  profile?: string;
+  pixFmt?: string;
+  /** Measured audio bitrate in bits/sec. */
+  aBitrate?: number;
+};
+
+/**
+ * Per-run user choices (from the optional Edit step). All optional; the engine
+ * works with an empty object. Threaded buildPlan ← run ← worker ← optimize().
+ */
+export type EncodeOptions = {
+  /** Light unsharp mask. Default false (off). */
+  sharpen?: boolean;
+  /** EBU R128 loudness normalize to −14 LUFS. Default false (off). */
+  normalizeLoudness?: boolean;
+  /** Preferred output codec (YouTube only); falls back to avc if unsupported. */
+  videoCodec?: VideoCodecChoice;
+  /** YouTube quality ceiling chosen by the user. Caps the target long edge. */
+  youtubeQuality?: "1080p" | "1440p" | "4K";
+  /** Manual aspect handling for off-aspect sources (editor B1). */
+  aspectMode?: "fit" | "fill";
+  /** Normalized crop rect in source space (0..1). Editor B1 (Fill / reframe). */
+  cropRect?: { x: number; y: number; width: number; height: number };
+  /** Explicit trim window in seconds (editor B1). */
+  trim?: { start: number; end: number };
+};
+
 /** A platform-specific output profile (see lib/config/profiles.ts). */
 export type PlatformProfile = {
   id: string;
@@ -34,6 +77,10 @@ export type PlatformProfile = {
   maxBitrate?: number;
   /** Keyframe interval in seconds (closed GOP). Defaults to 2. YouTube prefers ~1. */
   gopSec?: number;
+  /** Allowed output codecs the user may pick (YouTube). First entry is default. */
+  codecOptions?: VideoCodecChoice[];
+  /** Real measured output for this platform (A1). Preferred over researched values. */
+  measuredOutput?: MeasuredOutput;
   /** Device-specific "best way to share" copy. */
   shareHint: string;
   /** Short marketing blurb for the platform tile. */
@@ -70,6 +117,18 @@ export type EncodePlan = {
   targetHeight: number;
   /** True when we must composite onto a blurred 9:16 background. */
   blurPad: boolean;
+  /** Manual aspect handling: "fit" = blur-pad, "fill" = crop-to-fill. */
+  aspectMode: "fit" | "fill";
+  /** Normalized crop rect in source space (0..1), when the user reframes / fills. */
+  cropRect?: { x: number; y: number; width: number; height: number };
+  /** Use the high-quality stepped/Lanczos downscaler (IG/WhatsApp/FB). */
+  hqDownscale: boolean;
+  /** Output video codec (avc by default; av1/hevc for YouTube when supported). */
+  videoCodec: VideoCodecChoice;
+  /** Apply a light unsharp mask before encode (opt-in, default false). */
+  sharpen: boolean;
+  /** Normalize loudness to −14 LUFS (opt-in, default false). */
+  normalizeLoudness: boolean;
   /** Output frame rate. */
   fps: number;
   /** Trim to this many seconds from the start (undefined = keep full). */
@@ -164,7 +223,7 @@ export const INPUT_LIMITS = {
 
 /** Worker message protocol. */
 export type WorkerRequest =
-  | { type: "optimize"; id: number; file: File; profileId: string }
+  | { type: "optimize"; id: number; file: File; profileId: string; options?: EncodeOptions }
   | { type: "probe"; id: number; file: File };
 
 export type WorkerResponse =

@@ -1,4 +1,5 @@
 import {
+  type EncodeOptions,
   EngineError,
   type OnProgress,
   type OptimizeResult,
@@ -8,6 +9,7 @@ import {
 } from "./types";
 
 export type {
+  EncodeOptions,
   EncodePlan,
   EngineError as EngineErrorType,
   EngineErrorCode,
@@ -18,6 +20,7 @@ export type {
   Progress,
   ProgressStage,
   SegmentInfo,
+  VideoCodecChoice,
   VideoMeta,
 } from "./types";
 export { EngineError, INPUT_LIMITS } from "./types";
@@ -34,6 +37,7 @@ export function optimize(
   profileId: string,
   onProgress: OnProgress,
   signal?: AbortSignal,
+  options?: EncodeOptions,
 ): Promise<OptimizeResult[]> {
   return new Promise<OptimizeResult[]>((resolve, reject) => {
     if (typeof Worker === "undefined") {
@@ -99,7 +103,7 @@ export function optimize(
       reject(new EngineError("ENCODE_FAILED", event.message || "Video engine crashed."));
     };
 
-    const request: WorkerRequest = { type: "optimize", id, file, profileId };
+    const request: WorkerRequest = { type: "optimize", id, file, profileId, options };
     worker.postMessage(request);
   });
 }

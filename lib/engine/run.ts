@@ -1,10 +1,11 @@
 import { requireProfile } from "@/lib/config/profiles";
-import { canUseWebCodecs } from "./capabilities";
+import { canUseWebCodecs, resolveSupportedCodec } from "./capabilities";
 import { encodeFfmpeg } from "./encode.ffmpeg";
 import { type EncodeResult, encodeWebCodecs } from "./encode.webcodecs";
 import { buildPlan, computeSegments } from "./plan";
 import { probe } from "./probe";
 import {
+  type EncodeOptions,
   type EncodePlan,
   EngineError,
   type EnginePath,
@@ -46,7 +47,12 @@ async function encodeWithFallback(
   signal: AbortSignal | undefined,
   wcSupported: boolean,
 ): Promise<{ result: EncodeResult; plan: EncodePlan; path: EnginePath }> {
-  if (wcSupported) {
+  // Sharpen (unsharp) and loudness-normalize (loudnorm) are implemented in the
+  // ffmpeg filtergraph; route those opt-in jobs straight to ffmpeg. The fast
+  // default path (no edits) stays on WebCodecs.
+  const mustUseFfmpeg = plan.sharpen || plan.normalizeLoudness;
+
+  if (wcSupported && !mustUseFfmpeg) {
     try {
       const result = await encodeWebCodecs(file, meta, plan, onProgress, signal);
       return { result, plan, path: "webcodecs" };
@@ -89,6 +95,7 @@ export async function runOptimize(
   profileId: string,
   onProgress: OnProgress,
   signal?: AbortSignal,
+  options: EncodeOptions = {},
 ): Promise<OptimizeResult[]> {
   if (signal?.aborted) throw new EngineError("CANCELLED");
 
@@ -104,10 +111,17 @@ export async function runOptimize(
   }
 
   const profile = requireProfile(profileId);
-  const basePlan = buildPlan(meta, profile);
+  let basePlan = buildPlan(meta, profile, options);
   onProgress({ stage: "analyzing", value: 0.05, label: "Analyzing" });
 
   const wcSupported = await canUseWebCodecs(basePlan);
+
+  // Downgrade the codec to H.264 if the preferred one (AV1/HEVC) isn't
+  // encodable here (A3). Done once against the base plan.
+  if (basePlan.videoCodec !== "avc") {
+    const codec = await resolveSupportedCodec(basePlan);
+    if (codec !== basePlan.videoCodec) basePlan = { ...basePlan, videoCodec: codec };
+  }
 
   const splitting =
     Boolean(profile.splitOversize) && meta.durationSec > profile.maxDurationSec + 0.05;
@@ -159,9 +173,10 @@ export async function runOptimize(
     let part: SegmentInfo | undefined;
     if (window) {
       const segDuration = window.end - window.start;
-      const segPlan = buildPlan({ ...meta, durationSec: segDuration }, profile);
+      const segPlan = buildPlan({ ...meta, durationSec: segDuration }, profile, options);
       plan = {
         ...segPlan,
+        videoCodec: basePlan.videoCodec,
         fastPath: false,
         trimToSec: undefined,
         trim: { start: window.start, end: window.end },

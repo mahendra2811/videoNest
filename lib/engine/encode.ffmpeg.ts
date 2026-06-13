@@ -40,20 +40,41 @@ function inputExtension(meta: VideoMeta, name: string): string {
   return "bin";
 }
 
-/** Build the -vf filtergraph for the plan. */
+/** Light, fixed unsharp mask (A5). Mirrors the spec's recommended strength. */
+const UNSHARP = "unsharp=5:5:0.4:5:5:0.0";
+
+/** Build the -vf filtergraph for the plan (Lanczos downscale, fit/fill, sharpen). */
 function buildVideoFilter(plan: EncodePlan): string {
+  let graph: string;
   if (plan.blurPad) {
+    // Fit: sharp source contained over a blurred cover copy.
     const w = plan.targetWidth;
     const h = plan.targetHeight;
-    return [
+    graph = [
       "split=2[bg][fg]",
-      `[bg]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},boxblur=20:3,eq=brightness=-0.06[bgb]`,
-      `[fg]scale=${w}:${h}:force_original_aspect_ratio=decrease:force_divisible_by=2[fgs]`,
+      `[bg]scale=${w}:${h}:force_original_aspect_ratio=increase:flags=lanczos,crop=${w}:${h},boxblur=20:3,eq=brightness=-0.06[bgb]`,
+      `[fg]scale=${w}:${h}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos[fgs]`,
       "[bgb][fgs]overlay=(W-w)/2:(H-h)/2:format=auto,setsar=1",
     ].join(";");
+  } else if (plan.aspectMode === "fill" || plan.cropRect) {
+    // Fill: crop-to-fill the target box (optionally a chosen region), Lanczos.
+    const w = plan.targetWidth;
+    const h = plan.targetHeight;
+    if (plan.cropRect) {
+      const { x, y, width, height } = plan.cropRect;
+      graph =
+        `crop=iw*${width}:ih*${height}:iw*${x}:ih*${y},` + `scale=${w}:${h}:flags=lanczos,setsar=1`;
+    } else {
+      graph =
+        `scale=${w}:${h}:force_original_aspect_ratio=increase:flags=lanczos,` +
+        `crop=${w}:${h},setsar=1`;
+    }
+  } else {
+    // Downscale-only, even dimensions, never upscale, Lanczos resampler (A4).
+    graph = `scale=w='min(${plan.targetWidth},iw)':h='min(${plan.targetHeight},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,setsar=1`;
   }
-  // Downscale-only, even dimensions, never upscale.
-  return `scale=w='min(${plan.targetWidth},iw)':h='min(${plan.targetHeight},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1`;
+  if (plan.sharpen) graph += `,${UNSHARP}`;
+  return graph;
 }
 
 /**
@@ -117,6 +138,11 @@ export async function encodeFfmpeg(
     args.push("-bufsize", String(plan.videoBitrate * 2));
     args.push("-g", String(gop), "-keyint_min", String(gop), "-sc_threshold", "0");
     if (plan.audio) {
+      // Loudness-normalize only when the user opted in (A6). Platforms normalize
+      // on their side, so it stays off by default.
+      if (plan.normalizeLoudness) {
+        args.push("-af", "loudnorm=I=-14:TP=-1.5:LRA=11");
+      }
       args.push("-c:a", "aac", "-b:a", `${Math.round(plan.audio.bitrate / 1000)}k`);
       args.push("-ar", String(plan.audio.sampleRate));
     } else {

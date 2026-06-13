@@ -185,6 +185,152 @@ describe("buildPlan — overprovision bitrate strategy", () => {
   });
 });
 
+const ytShorts = getProfile("youtube-shorts");
+if (!ytShorts) throw new Error("youtube-shorts profile missing");
+
+describe("buildPlan — options defaults (no edits)", () => {
+  it("defaults: no sharpen, no loudness, avc, fit, no crop/trim", () => {
+    const plan = buildPlan(meta(), whatsapp);
+    expect(plan.sharpen).toBe(false);
+    expect(plan.normalizeLoudness).toBe(false);
+    expect(plan.videoCodec).toBe("avc");
+    expect(plan.aspectMode).toBe("fit");
+    expect(plan.cropRect).toBeUndefined();
+    expect(plan.trim).toBeUndefined();
+  });
+});
+
+describe("buildPlan — A5 sharpen toggle", () => {
+  it("off by default", () => {
+    expect(buildPlan(meta(), whatsapp).sharpen).toBe(false);
+  });
+  it("on when requested → flagged and not fast-pathed", () => {
+    const plan = buildPlan(meta(), whatsapp, { sharpen: true });
+    expect(plan.sharpen).toBe(true);
+    expect(plan.fastPath).toBe(false);
+  });
+});
+
+describe("buildPlan — A6 loudness normalize toggle", () => {
+  it("off by default", () => {
+    expect(buildPlan(meta(), whatsapp).normalizeLoudness).toBe(false);
+  });
+  it("on when requested → flagged and not fast-pathed", () => {
+    const plan = buildPlan(meta(), whatsapp, { normalizeLoudness: true });
+    expect(plan.normalizeLoudness).toBe(true);
+    expect(plan.fastPath).toBe(false);
+  });
+  it("YouTube long-form audio is high-bitrate (≥256k)", () => {
+    const plan = buildPlan(meta({ width: 1920, height: 1080, durationSec: 120 }), ytLong);
+    expect(plan.audio?.bitrate).toBeGreaterThanOrEqual(256_000);
+  });
+  it("WhatsApp keeps 128k audio", () => {
+    expect(buildPlan(meta(), whatsapp).audio?.bitrate).toBe(128_000);
+  });
+});
+
+describe("buildPlan — B1 aspect mode (fit / fill)", () => {
+  it("off-aspect + fit → blur-pad (default)", () => {
+    const plan = buildPlan(meta({ width: 1920, height: 1080 }), whatsapp, { aspectMode: "fit" });
+    expect(plan.blurPad).toBe(true);
+  });
+  it("off-aspect + fill → crop-to-fill, no pad, not fast-pathed", () => {
+    const plan = buildPlan(meta({ width: 1920, height: 1080 }), whatsapp, { aspectMode: "fill" });
+    expect(plan.blurPad).toBe(false);
+    expect(plan.fastPath).toBe(false);
+    expect(plan.notes.join(" ")).toMatch(/fill/i);
+  });
+  it("fill never upscales the cropped region (target ≤ source-derived box)", () => {
+    // 1920×1080 → 9:16: cover>1, so the box is shrunk to avoid upscaling.
+    const plan = buildPlan(meta({ width: 1920, height: 1080 }), whatsapp, { aspectMode: "fill" });
+    expect(plan.targetWidth).toBeLessThanOrEqual(1080);
+    expect(plan.targetWidth % 2).toBe(0);
+    expect(plan.targetHeight % 2).toBe(0);
+  });
+  it("a crop rect forces re-encode and carries through", () => {
+    const cropRect = { x: 0.1, y: 0.1, width: 0.8, height: 0.8 };
+    const plan = buildPlan(meta(), whatsapp, { cropRect });
+    expect(plan.cropRect).toEqual(cropRect);
+    expect(plan.fastPath).toBe(false);
+  });
+});
+
+describe("buildPlan — A4 1080 cap + high-quality downscale", () => {
+  it("IG Reels 4K → exactly 1080-class, hqDownscale on", () => {
+    const plan = buildPlan(meta({ width: 2160, height: 3840 }), igReels);
+    expect(plan.targetWidth).toBe(1080);
+    expect(plan.targetHeight).toBe(1920);
+    expect(plan.hqDownscale).toBe(true);
+  });
+  it("WhatsApp 4K → 1080-class, hqDownscale on", () => {
+    const plan = buildPlan(
+      meta({ width: 2160, height: 3840, sizeBytes: 200 * 1024 * 1024 }),
+      whatsapp,
+    );
+    expect(plan.targetWidth).toBe(1080);
+    expect(plan.hqDownscale).toBe(true);
+  });
+  it("YouTube never uses the constrained hqDownscale path (passthrough instead)", () => {
+    const plan = buildPlan(meta({ width: 3840, height: 2160, durationSec: 120 }), ytLong);
+    expect(plan.hqDownscale).toBe(false);
+  });
+});
+
+describe("buildPlan — A3 YouTube quality selector + codec", () => {
+  it("4K source + 1080p selection → capped to 1080-class", () => {
+    const plan = buildPlan(meta({ width: 3840, height: 2160, durationSec: 120 }), ytLong, {
+      youtubeQuality: "1080p",
+    });
+    expect(Math.max(plan.targetWidth, plan.targetHeight)).toBeLessThanOrEqual(1080);
+  });
+  it("4K source + 1440p selection → up to 1440-class", () => {
+    const plan = buildPlan(meta({ width: 3840, height: 2160, durationSec: 120 }), ytLong, {
+      youtubeQuality: "1440p",
+    });
+    expect(Math.max(plan.targetWidth, plan.targetHeight)).toBeLessThanOrEqual(1440);
+    expect(Math.max(plan.targetWidth, plan.targetHeight)).toBeGreaterThan(1080);
+  });
+  it("YouTube allows AV1 when requested", () => {
+    const plan = buildPlan(meta({ width: 1920, height: 1080, durationSec: 120 }), ytLong, {
+      videoCodec: "av1",
+    });
+    expect(plan.videoCodec).toBe("av1");
+  });
+  it("non-YouTube ignores a codec request (stays avc)", () => {
+    const plan = buildPlan(meta(), whatsapp, { videoCodec: "av1" });
+    expect(plan.videoCodec).toBe("avc");
+  });
+});
+
+describe("buildPlan — A1 measuredOutput preference", () => {
+  const measured = {
+    ...whatsapp,
+    measuredOutput: {
+      width: 720,
+      height: 1280,
+      fps: 30,
+      vBitrate: 2_000_000,
+      vCodec: "h264",
+    },
+  };
+  it("targets measured resolution and ~7% under measured bitrate", () => {
+    const plan = buildPlan(meta({ width: 1080, height: 1920 }), measured);
+    expect(plan.targetWidth).toBe(720);
+    expect(plan.targetHeight).toBe(1280);
+    expect(plan.videoBitrate).toBe(Math.round(2_000_000 * 0.93));
+    expect(plan.fastPath).toBe(false);
+  });
+});
+
+describe("buildPlan — editor trim", () => {
+  it("a user trim window sets effective duration and disables fast path", () => {
+    const plan = buildPlan(meta({ durationSec: 25 }), whatsapp, { trim: { start: 5, end: 15 } });
+    expect(plan.trim).toEqual({ start: 5, end: 15 });
+    expect(plan.effectiveDurationSec).toBe(10);
+    expect(plan.fastPath).toBe(false);
+  });
+});
+
 import { computeSegments } from "@/lib/engine/plan";
 
 describe("computeSegments", () => {

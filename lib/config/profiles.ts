@@ -104,6 +104,7 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     bitrateStrategy: "overprovision",
     bitratePerPixel: 0.2, // YouTube rewards a high-bitrate source
     gopSec: 1,
+    codecOptions: ["avc", "av1", "hevc"],
     audio: { codec: "aac", bitrateKbps: 256 },
     shareHint: "Download, then upload it as a Short from the YouTube app.",
     blurb: "Short-form, high bitrate.",
@@ -131,6 +132,7 @@ export const PLATFORM_PROFILES: PlatformProfile[] = [
     bitratePerPixel: 0.22, // ~13 Mbps @1080p·30; YouTube bitrates are floors
     maxBitrate: 30_000_000,
     gopSec: 1,
+    codecOptions: ["avc", "av1", "hevc"],
     audio: { codec: "aac", bitrateKbps: 384 },
     shareHint: "Download, then upload it to YouTube from your computer or the app.",
     blurb: "Landscape, high-bitrate uploads.",
