@@ -24,6 +24,7 @@ export function buildToolMetadata(profileId: string): Metadata {
     title: content.metaTitle,
     description: content.metaDescription,
     path: `/${profile.slug}`,
+    ogTitle: `${profile.label} — keep it sharp`,
   });
 }
 

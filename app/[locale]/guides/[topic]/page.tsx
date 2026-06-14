@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     title: guide.metaTitle,
     description: guide.metaDescription,
     path: `/guides/${guide.slug}`,
+    ogTitle: guide.title,
   });
 }
 
