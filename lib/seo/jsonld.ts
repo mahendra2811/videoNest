@@ -63,6 +63,53 @@ export function softwareApplicationJsonLd(opts: {
   };
 }
 
+export function howToJsonLd(opts: { platformLabel: string; slug: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: `How to keep your ${opts.platformLabel} video sharp`,
+    description: `Prepare a video on your device so ${opts.platformLabel} stays as sharp as possible after it re-compresses your upload.`,
+    totalTime: "PT1M",
+    tool: [{ "@type": "HowToTool", name: "VideoNest" }],
+    step: [
+      {
+        "@type": "HowToStep",
+        name: "Open the optimizer",
+        text: `Open the ${opts.platformLabel} optimizer on VideoNest.`,
+        url: absoluteUrl(`/${opts.slug}`),
+      },
+      {
+        "@type": "HowToStep",
+        name: "Add your video",
+        text: "Drop in your video — it's read and processed entirely on your device, nothing is uploaded.",
+      },
+      {
+        "@type": "HowToStep",
+        name: "Optimize",
+        text: `Tap "Make it sharp". VideoNest fixes the shape, resolution and bitrate for ${opts.platformLabel}.`,
+      },
+      {
+        "@type": "HowToStep",
+        name: "Share",
+        text: `Share or download the result and post it to ${opts.platformLabel}.`,
+      },
+    ],
+  };
+}
+
+export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
 export function faqJsonLd(items: FaqItem[]) {
   return {
     "@context": "https://schema.org",

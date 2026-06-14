@@ -7,7 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { lastVerifiedLabel, requireProfile } from "@/lib/config/profiles";
 import { getPlatformContent } from "@/lib/content/platforms";
-import { faqJsonLd, softwareApplicationJsonLd } from "@/lib/seo/jsonld";
+import {
+  breadcrumbJsonLd,
+  faqJsonLd,
+  howToJsonLd,
+  softwareApplicationJsonLd,
+} from "@/lib/seo/jsonld";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 /** Per-route metadata for a platform's tool page. */
@@ -35,6 +40,14 @@ export function ToolPage({ profileId }: { profileId: string }) {
           slug: profile.slug,
           description: content.metaDescription,
         })}
+      />
+      <JsonLd data={howToJsonLd({ platformLabel: profile.label, slug: profile.slug })} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Tools", path: "/tools" },
+          { name: profile.label, path: `/${profile.slug}` },
+        ])}
       />
       {content.faqs.length > 0 && <JsonLd data={faqJsonLd(content.faqs)} />}
 
