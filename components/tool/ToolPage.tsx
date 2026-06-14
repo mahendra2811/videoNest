@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { RelatedGuides } from "@/components/seo/RelatedGuides";
 import { FavouriteButton } from "@/components/tool/FavouriteButton";
 import { ToolScreen } from "@/components/tool/ToolScreen";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,8 @@ export function ToolPage({ profileId }: { profileId: string }) {
           {profile.label} profile last verified {verified}.
         </p>
       )}
+
+      <RelatedGuides profileId={profile.id} />
     </div>
   );
 }

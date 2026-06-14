@@ -31,6 +31,18 @@ export function organizationJsonLd() {
   };
 }
 
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    description: siteConfig.description,
+    inLanguage: ["en", "hi", "es", "pt", "id", "fr", "bn", "ar", "ur"],
+    publisher: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
+  };
+}
+
 export function webApplicationJsonLd() {
   return {
     "@context": "https://schema.org",
