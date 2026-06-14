@@ -1,0 +1,27 @@
+---
+title: Cómo VideoNest optimiza el video totalmente en tu dispositivo
+description: Sin subidas, sin servidores, sin cuentas. Así recodifica VideoNest el video directamente en tu navegador.
+date: "2026-04-20"
+author: VideoNest
+readingMinutes: 4
+excerpt: VideoNest nunca sube tu video. Así funciona en realidad el pipeline de codificación en el dispositivo.
+---
+
+Una pregunta justa sobre cualquier herramienta para "optimizar tu video": **¿a dónde va mi video?** Con VideoNest, la respuesta es a ningún lado. Todo ocurre en tu dispositivo, en tu navegador.
+
+## En el dispositivo, por diseño
+
+VideoNest usa el motor de video **WebCodecs** integrado en tu navegador para decodificar, reformar y recodificar tu clip localmente. Tu archivo nunca se envía a un servidor — no hay subida, ni cuenta, ni nada que guardemos.
+
+## Qué hace en realidad
+
+1. **Lee** los metadatos de tu clip (tamaño, forma, fotogramas, color).
+2. **Planifica** la salida correcta para tu plataforma — resolución, manejo del aspecto, bitrate y fotogramas.
+3. **Recodifica** a un MP4 limpio (H.264), reduciendo con un buen remuestreador y fijando la orientación correcta.
+4. **Te entrega el archivo** para compartir o descargar.
+
+En navegadores sin el soporte adecuado, recurre a un motor **ffmpeg.wasm** alojado por nosotros — aún totalmente en tu dispositivo.
+
+## Por qué importa
+
+Como nada sale de tu teléfono, VideoNest es privado por defecto, funciona sin conexión una vez instalado y sigue siendo gratis y sin marca de agua. No podemos prometer "sin pérdidas" — ninguna herramienta puede vencer la recompresión de la plataforma — pero sí podemos asegurarnos de que la plataforma parta del archivo más limpio posible.

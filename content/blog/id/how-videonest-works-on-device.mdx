@@ -1,0 +1,27 @@
+---
+title: Bagaimana VideoNest mengoptimalkan video sepenuhnya di perangkatmu
+description: Tanpa unggahan, tanpa server, tanpa akun. Begini VideoNest mengodekan ulang video langsung di browsermu.
+date: "2026-04-20"
+author: VideoNest
+readingMinutes: 4
+excerpt: VideoNest tidak pernah mengunggah videomu. Begini cara kerja pipeline pengodean di perangkat sebenarnya.
+---
+
+Pertanyaan yang wajar tentang alat "optimalkan videomu" mana pun: **ke mana videoku pergi?** Dengan VideoNest, jawabannya tidak ke mana-mana. Semua terjadi di perangkatmu, di browsermu.
+
+## Di perangkat, secara desain
+
+VideoNest memakai mesin video **WebCodecs** bawaan browsermu untuk mendekode, membentuk ulang, dan mengodekan ulang klipmu secara lokal. Filemu tidak pernah dikirim ke server — tidak ada unggahan, akun, atau apa pun untuk kami simpan.
+
+## Apa yang sebenarnya dilakukannya
+
+1. **Membaca** metadata klipmu (ukuran, bentuk, frame rate, warna).
+2. **Merencanakan** keluaran yang tepat untuk platformmu — resolusi, penanganan rasio, bitrate, dan frame rate.
+3. **Mengodekan ulang** ke MP4 bersih (H.264), menurunkan dengan resampler yang baik dan menetapkan orientasi yang benar.
+4. **Memberimu file-nya** untuk dibagikan atau diunduh.
+
+Pada browser tanpa dukungan yang tepat, ia beralih ke mesin **ffmpeg.wasm** yang kami hosting sendiri — tetap sepenuhnya di perangkatmu.
+
+## Kenapa ini penting
+
+Karena tidak ada yang keluar dari teleponmu, VideoNest privat secara default, bekerja offline setelah dipasang, dan tetap gratis tanpa watermark. Kami tak bisa menjanjikan "tanpa kehilangan kualitas" — tak ada alat yang bisa mengalahkan kompresi ulang platform — tapi kami bisa memastikan platform memulai dari file sebersih mungkin.
