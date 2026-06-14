@@ -40,6 +40,7 @@ export function BottomNav() {
   ];
 
   const moreLinks = [
+    { href: "/guides", label: t("guides") },
     { href: "/about", label: t("about") },
     { href: "/blog", label: t("blog") },
     { href: "/how-it-works", label: t("howItWorks") },

@@ -3,6 +3,7 @@ import { routing } from "@/i18n/routing";
 import { getAllSlugs } from "@/lib/blog/mdx";
 import { getLiveProfiles } from "@/lib/config/profiles";
 import { absoluteUrl } from "@/lib/config/site";
+import { GUIDES } from "@/lib/content/guides";
 
 /** Absolute URL for a path in a given locale (English is unprefixed). */
 function localeUrl(path: string, locale: string): string {
@@ -42,7 +43,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
   }));
 
-  return [...staticRoutes, ...platformRoutes, ...blogRoutes].map((route) => ({
+  const guideRoutes = [
+    { path: "/guides", priority: 0.6, changeFrequency: "weekly" as const },
+    ...GUIDES.map((g) => ({
+      path: `/guides/${g.slug}`,
+      priority: 0.7,
+      changeFrequency: "monthly" as const,
+    })),
+  ];
+
+  return [...staticRoutes, ...platformRoutes, ...blogRoutes, ...guideRoutes].map((route) => ({
     url: absoluteUrl(route.path),
     changeFrequency: route.changeFrequency,
     priority: route.priority,

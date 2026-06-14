@@ -7,7 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export async function Header() {
   const t = await getTranslations("Nav");
   const navLinks = [
-    { href: "/how-it-works", label: t("howItWorks") },
+    { href: "/guides", label: t("guides") },
     { href: "/blog", label: t("blog") },
     { href: "/download", label: t("getApp") },
     { href: "/about", label: t("about") },
