@@ -1,0 +1,31 @@
+# VideoNest
+
+> VideoNest is a free, 100% on-device web app that re-encodes a video — entirely in the browser, nothing uploaded — into the cleanest possible file for a chosen social platform, so it stays as sharp as possible after that platform re-compresses it. Honest by design: every platform re-compresses uploads and we never claim "lossless" — we minimise the damage.
+
+## Tools (one per platform, each a tool page)
+
+- [WhatsApp Status](https://videonest.app/whatsapp-status-video): Optimize a video for WhatsApp Status (9:16, ~16 MB cap, 30s).
+- [Instagram Reels](https://videonest.app/instagram-reels-video): Optimize for Instagram Reels (1080×1920).
+- [Instagram Story](https://videonest.app/instagram-story-video): Optimize for Instagram Story.
+- [YouTube Shorts](https://videonest.app/youtube-shorts-video): High-resolution, high-bitrate Shorts.
+- [YouTube](https://videonest.app/youtube-video): Landscape YouTube uploads.
+- [Facebook Video](https://videonest.app/facebook-video): Landscape Facebook feed video.
+- [Facebook Story](https://videonest.app/facebook-story-video): Vertical Facebook Story.
+
+## Guides
+
+- [WhatsApp Status video size limit](https://videonest.app/guides/whatsapp-status-video-size-limit)
+- [Why are my Instagram Reels blurry?](https://videonest.app/guides/why-are-my-instagram-reels-blurry)
+- [Best resolution for YouTube Shorts](https://videonest.app/guides/best-resolution-for-youtube-shorts)
+- [Fit or fill: landscape to vertical](https://videonest.app/guides/fit-or-fill-vertical-video)
+
+## About
+
+- [How it works](https://videonest.app/how-it-works): The on-device encode pipeline (WebCodecs + ffmpeg.wasm fallback).
+- [Blog](https://videonest.app/blog): Honest guides on surviving platform compression.
+
+## Key facts
+
+- Free, no account, no watermark, no upload — processing runs on the user's device.
+- Available in English, Hindi, Spanish, Portuguese, Indonesian, French, Bengali, Arabic, Urdu.
+- We cannot prevent platform recompression and never claim "lossless" or "restore quality".

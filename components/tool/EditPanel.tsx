@@ -491,6 +491,7 @@ export function EditPanel({
         <input
           type="file"
           accept="audio/*"
+          aria-label="Add an audio file"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f)

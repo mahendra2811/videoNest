@@ -78,7 +78,7 @@ export function ShareActions({
       </div>
       <p className="text-center text-sm text-muted">{hint}</p>
       {profileId.startsWith("whatsapp") && (
-        <p className="text-center text-xs text-muted/80">{strings.share.whatsappHd}</p>
+        <p className="text-center text-xs text-muted">{strings.share.whatsappHd}</p>
       )}
     </div>
   );

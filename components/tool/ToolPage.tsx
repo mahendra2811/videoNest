@@ -79,7 +79,7 @@ export function ToolPage({ profileId }: { profileId: string }) {
       </p>
 
       {verified && (
-        <p className="text-center text-[11px] text-muted/80">
+        <p className="text-center text-[11px] text-muted">
           {profile.label} profile last verified {verified}.
         </p>
       )}
