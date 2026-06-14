@@ -80,9 +80,9 @@ export function InstallButton({ className }: { className?: string }) {
       </Button>
 
       {!canPrompt && showSteps && (
-        <div className="mt-4 rounded-2xl border border-border bg-surface p-4 text-left">
+        <div className="mt-4 rounded-2xl border border-border bg-surface p-4 text-start">
           <p className="mb-2 text-sm font-bold tracking-tight">{info.title}</p>
-          <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm text-muted">
+          <ol className="flex list-decimal flex-col gap-1.5 ps-5 text-sm text-muted">
             {info.steps.map((step) => (
               <li key={step}>{step}</li>
             ))}

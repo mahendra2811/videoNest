@@ -34,7 +34,7 @@ export function LanguageSwitcher() {
             className="fixed inset-0 z-40 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <ul className="absolute right-0 z-50 mt-1 min-w-[8rem] overflow-hidden rounded-2xl border border-border bg-surface py-1 shadow-warm">
+          <ul className="absolute end-0 z-50 mt-1 min-w-[8rem] overflow-hidden rounded-2xl border border-border bg-surface py-1 shadow-warm">
             {routing.locales.map((l) => (
               <li key={l}>
                 <button
@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
                     setOpen(false);
                     router.replace(pathname, { locale: l });
                   }}
-                  className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-surface-2 ${
+                  className={`block w-full px-4 py-2 text-start text-sm transition-colors hover:bg-surface-2 ${
                     l === locale ? "font-semibold text-brand-via" : "text-foreground"
                   }`}
                 >

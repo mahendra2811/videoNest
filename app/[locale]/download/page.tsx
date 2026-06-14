@@ -28,7 +28,7 @@ export default function DownloadPage() {
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-bold tracking-tight">Why install?</h2>
-        <ul className="flex list-disc flex-col gap-2 pl-5 text-sm text-muted">
+        <ul className="flex list-disc flex-col gap-2 ps-5 text-sm text-muted">
           <li>One tap from your home screen — no browser tabs to dig through.</li>
           <li>Runs full-screen with the app splash, like a native app.</li>
           <li>Works offline; the on-device video engine doesn't need a connection.</li>

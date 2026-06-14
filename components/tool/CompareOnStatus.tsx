@@ -42,7 +42,7 @@ export function CompareOnStatus({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm"
+        className="flex w-full items-center gap-2 px-4 py-3 text-start text-sm"
       >
         <span className="flex-1 font-medium">Want proof? Compare on your Status</span>
         <ChevronDown

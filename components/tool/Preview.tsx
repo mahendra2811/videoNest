@@ -90,7 +90,7 @@ export function Preview({
         ) : (
           <div className="aspect-[9/16] w-full" />
         )}
-        <Badge variant="sunset" className="absolute left-3 top-3">
+        <Badge variant="sunset" className="absolute start-3 top-3">
           {view === "after" ? "After" : "Before"}
         </Badge>
       </div>

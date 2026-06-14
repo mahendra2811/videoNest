@@ -14,7 +14,7 @@ import { Header } from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { AppleSplashLinks } from "@/components/pwa/AppleSplashLinks";
 import { WhatsNew } from "@/components/pwa/WhatsNew";
-import { routing } from "@/i18n/routing";
+import { localeDir, routing } from "@/i18n/routing";
 import { flags } from "@/lib/config/flags";
 import { siteConfig } from "@/lib/config/site";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -84,6 +84,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
+      dir={localeDir[locale as keyof typeof localeDir] ?? "ltr"}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >

@@ -63,7 +63,7 @@ function Section({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2.5 px-4 py-3 text-left"
+        className="flex w-full items-center gap-2.5 px-4 py-3 text-start"
         aria-expanded={open}
       >
         <span className="text-brand-via">{icon}</span>
@@ -345,7 +345,7 @@ export function EditPanel({
                     cropRect: mode === "fill" ? s.cropRect : null,
                   }))
                 }
-                className={`rounded-xl border p-3 text-left text-sm ${
+                className={`rounded-xl border p-3 text-start text-sm ${
                   state.aspectMode === mode ? "border-brand-via bg-brand-via/5" : "border-border"
                 }`}
               >
@@ -499,7 +499,7 @@ export function EditPanel({
                 music: { file: f, mode: "mix", volume: 0.8, duck: true },
               }));
           }}
-          className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-muted/10 file:px-3 file:py-1.5 file:text-sm"
+          className="text-sm file:me-3 file:rounded-lg file:border-0 file:bg-muted/10 file:px-3 file:py-1.5 file:text-sm"
         />
         {state.music && (
           <div className="flex flex-col gap-2">

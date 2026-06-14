@@ -7,7 +7,7 @@ import { defineRouting } from "next-intl/routing";
  * translated blog posts under `content/blog/<locale>/`) — no route refactor.
  */
 export const routing = defineRouting({
-  locales: ["en", "hi", "es", "pt", "id", "fr", "bn"],
+  locales: ["en", "hi", "es", "pt", "id", "fr", "bn", "ar", "ur"],
   defaultLocale: "en",
   localePrefix: "as-needed",
 });
@@ -23,9 +23,11 @@ export const localeNames: Record<Locale, string> = {
   id: "Bahasa Indonesia",
   fr: "Français",
   bn: "বাংলা",
+  ar: "العربية",
+  ur: "اردو",
 };
 
-/** Text direction per locale. RTL locales (added later) set "rtl". */
+/** Text direction per locale. */
 export const localeDir: Record<Locale, "ltr" | "rtl"> = {
   en: "ltr",
   hi: "ltr",
@@ -34,4 +36,6 @@ export const localeDir: Record<Locale, "ltr" | "rtl"> = {
   id: "ltr",
   fr: "ltr",
   bn: "ltr",
+  ar: "rtl",
+  ur: "rtl",
 };

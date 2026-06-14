@@ -43,7 +43,7 @@ export function Steps() {
               </span>
             </AccordionTrigger>
             <AccordionContent>
-              <span className="block pl-11">{step.body}</span>
+              <span className="block ps-11">{step.body}</span>
             </AccordionContent>
           </AccordionItem>
         ))}
