@@ -1,0 +1,68 @@
+{
+  "Common": {
+    "tagline": "Tetap tajam setelah diunggah.",
+    "promiseShort": "Kualitas terbaik setelah platform mengompresnya.",
+    "promiseLong": "Setiap platform mengompres ulang yang kamu unggah — kami tidak bisa mencegahnya. VideoNest menyiapkan videomu agar kompresi platform memberi kerusakan sekecil mungkin, sehingga tetap setajam mungkin.",
+    "privacy": "100% di perangkatmu — videomu tidak pernah keluar dari sana.",
+    "free": "Gratis, tanpa watermark, tanpa akun."
+  },
+  "Nav": {
+    "home": "Beranda",
+    "favourites": "Favorit",
+    "tools": "Alat",
+    "more": "Lainnya",
+    "about": "Tentang",
+    "blog": "Blog",
+    "howItWorks": "Cara kerja",
+    "getApp": "Dapatkan app",
+    "privacy": "Privasi",
+    "terms": "Ketentuan",
+    "contact": "Kontak",
+    "theme": "Tema",
+    "language": "Bahasa",
+    "aiEnhanceSoon": "Segera hadir: AI Enhance"
+  },
+  "Home": {
+    "choosePlatform": "Pilih platformmu",
+    "choosePlatformSub": "Pilih tempat kamu memposting — tiap format disetel untuk spesifikasinya sendiri.",
+    "howItWorks": "Cara kerja",
+    "faq": "Pertanyaan umum",
+    "favourites": "Favorit",
+    "recentlyUsed": "Baru digunakan"
+  },
+  "Tool": {
+    "optimizeFor": "Optimalkan untuk",
+    "dropPrompt": "Letakkan videomu dan kami buat tampil terbaik setelah kamu posting.",
+    "optimize": "Buat tajam",
+    "optimizeEdited": "Terapkan & buat tajam",
+    "reading": "Membaca videomu…",
+    "edit": "Edit video",
+    "editsAdded": "Editan ditambahkan",
+    "hideEdits": "Sembunyikan editan",
+    "chooseAnother": "Pilih yang lain",
+    "ready": "Videomu siap ✨",
+    "statsNote": "Kami menyiapkan videomu agar kompresi platform memberi kerusakan sekecil mungkin.",
+    "lastVerified": "Profil {platform} terakhir diverifikasi {date}."
+  },
+  "Editor": {
+    "trim": "Pangkas",
+    "frame": "Bingkai",
+    "text": "Teks",
+    "stickers": "Stiker",
+    "music": "Musik",
+    "qualityOptions": "Opsi kualitas",
+    "fit": "Pas",
+    "fill": "Penuh",
+    "addText": "Tambah teks",
+    "sharpen": "Penajaman ringan",
+    "sharpenHint": "Opsional — bisa menambah artefak setelah platform mengompres ulang.",
+    "normalize": "Normalkan kenyaringan (−14 LUFS)",
+    "normalizeHint": "Mati secara default — kebanyakan platform sudah menormalkan kenyaringan.",
+    "optional": "Mengedit opsional — lewati dan kami cukup mengoptimalkan."
+  },
+  "Share": {
+    "mobile": "Ketuk Bagikan, lalu posting video tersimpan dari aplikasi.",
+    "desktop": "Unduh, lalu posting dari aplikasi seluler (pengunggah web mengompres lebih keras).",
+    "whatsappHd": "Tips: aktifkan unggah HD WhatsApp (Setelan → Penyimpanan dan data → Kualitas unggahan)."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "Common": {
+    "tagline": "Restez net après la publication.",
+    "promiseShort": "La meilleure qualité possible après la compression de la plateforme.",
+    "promiseLong": "Chaque plateforme recompresse ce que vous envoyez — on ne peut pas l'empêcher. VideoNest prépare votre vidéo pour que la compression de la plateforme fasse le moins de dégâts possible et qu'elle reste aussi nette que possible.",
+    "privacy": "100 % sur votre appareil — votre vidéo n'en sort jamais.",
+    "free": "Gratuit, sans filigrane, sans compte."
+  },
+  "Nav": {
+    "home": "Accueil",
+    "favourites": "Favoris",
+    "tools": "Outils",
+    "more": "Plus",
+    "about": "À propos",
+    "blog": "Blog",
+    "howItWorks": "Comment ça marche",
+    "getApp": "Obtenir l'app",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "contact": "Contact",
+    "theme": "Thème",
+    "language": "Langue",
+    "aiEnhanceSoon": "Bientôt : AI Enhance"
+  },
+  "Home": {
+    "choosePlatform": "Choisissez votre plateforme",
+    "choosePlatformSub": "Choisissez où vous publiez — chaque format est réglé selon ses propres spécifications.",
+    "howItWorks": "Comment ça marche",
+    "faq": "Questions fréquentes",
+    "favourites": "Favoris",
+    "recentlyUsed": "Récemment utilisés"
+  },
+  "Tool": {
+    "optimizeFor": "Optimiser pour",
+    "dropPrompt": "Déposez votre vidéo et nous la rendrons la plus belle possible après publication.",
+    "optimize": "Rendre net",
+    "optimizeEdited": "Appliquer et rendre net",
+    "reading": "Lecture de votre vidéo…",
+    "edit": "Modifier la vidéo",
+    "editsAdded": "Modifications ajoutées",
+    "hideEdits": "Masquer les modifications",
+    "chooseAnother": "En choisir une autre",
+    "ready": "Votre vidéo est prête ✨",
+    "statsNote": "Nous préparons votre vidéo pour que la compression de la plateforme fasse le moins de dégâts possible.",
+    "lastVerified": "Profil {platform} vérifié pour la dernière fois le {date}."
+  },
+  "Editor": {
+    "trim": "Rogner",
+    "frame": "Cadrage",
+    "text": "Texte",
+    "stickers": "Stickers",
+    "music": "Musique",
+    "qualityOptions": "Options de qualité",
+    "fit": "Adapter",
+    "fill": "Remplir",
+    "addText": "Ajouter du texte",
+    "sharpen": "Netteté légère",
+    "sharpenHint": "Facultatif — peut ajouter des artefacts après la recompression de la plateforme.",
+    "normalize": "Normaliser le volume (−14 LUFS)",
+    "normalizeHint": "Désactivé par défaut — la plupart des plateformes normalisent déjà le volume.",
+    "optional": "L'édition est facultative — passez-la et nous optimisons simplement."
+  },
+  "Share": {
+    "mobile": "Touchez Partager, puis publiez la vidéo enregistrée depuis l'app.",
+    "desktop": "Téléchargez, puis publiez depuis l'app mobile (le téléversement web compresse plus fort).",
+    "whatsappHd": "Astuce : activez l'envoi HD de WhatsApp (Réglages → Stockage et données → Qualité d'envoi)."
+  }
+}

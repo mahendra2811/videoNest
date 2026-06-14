@@ -1,0 +1,68 @@
+{
+  "Common": {
+    "tagline": "Que se vea nítido después de subirlo.",
+    "promiseShort": "La mejor calidad posible después de que la plataforma lo comprime.",
+    "promiseLong": "Cada plataforma vuelve a comprimir lo que subes — no podemos evitarlo. VideoNest prepara tu video para que la compresión de la plataforma haga el menor daño posible y se mantenga lo más nítido posible.",
+    "privacy": "100% en tu dispositivo — tu video nunca sale de él.",
+    "free": "Gratis, sin marca de agua, sin cuenta."
+  },
+  "Nav": {
+    "home": "Inicio",
+    "favourites": "Favoritos",
+    "tools": "Herramientas",
+    "more": "Más",
+    "about": "Acerca de",
+    "blog": "Blog",
+    "howItWorks": "Cómo funciona",
+    "getApp": "Obtener app",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto",
+    "theme": "Tema",
+    "language": "Idioma",
+    "aiEnhanceSoon": "Próximamente: AI Enhance"
+  },
+  "Home": {
+    "choosePlatform": "Elige tu plataforma",
+    "choosePlatformSub": "Elige dónde vas a publicar — cada formato está ajustado a sus propias especificaciones.",
+    "howItWorks": "Cómo funciona",
+    "faq": "Preguntas frecuentes",
+    "favourites": "Favoritos",
+    "recentlyUsed": "Usados recientemente"
+  },
+  "Tool": {
+    "optimizeFor": "Optimizar para",
+    "dropPrompt": "Suelta tu video y haremos que luzca lo mejor posible después de publicarlo.",
+    "optimize": "Hacerlo nítido",
+    "optimizeEdited": "Aplicar y hacerlo nítido",
+    "reading": "Leyendo tu video…",
+    "edit": "Editar video",
+    "editsAdded": "Ediciones añadidas",
+    "hideEdits": "Ocultar ediciones",
+    "chooseAnother": "Elegir otro",
+    "ready": "Tu video está listo ✨",
+    "statsNote": "Preparamos tu video para que la compresión de la plataforma haga el menor daño posible.",
+    "lastVerified": "Perfil de {platform} verificado por última vez el {date}."
+  },
+  "Editor": {
+    "trim": "Recortar",
+    "frame": "Encuadre",
+    "text": "Texto",
+    "stickers": "Stickers",
+    "music": "Música",
+    "qualityOptions": "Opciones de calidad",
+    "fit": "Ajustar",
+    "fill": "Rellenar",
+    "addText": "Añadir texto",
+    "sharpen": "Enfoque ligero",
+    "sharpenHint": "Opcional — puede añadir artefactos después de que la plataforma recomprime.",
+    "normalize": "Normalizar volumen (−14 LUFS)",
+    "normalizeHint": "Desactivado por defecto — la mayoría de plataformas ya normalizan el volumen.",
+    "optional": "Editar es opcional — sáltalo y simplemente optimizamos."
+  },
+  "Share": {
+    "mobile": "Toca Compartir y publica el video guardado desde la app.",
+    "desktop": "Descárgalo y publícalo desde la app móvil (el subidor web comprime más).",
+    "whatsappHd": "Consejo: activa la subida en HD de WhatsApp (Ajustes → Almacenamiento y datos → Calidad de subida)."
+  }
+}
